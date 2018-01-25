@@ -36,17 +36,11 @@ import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 
 import ca.mcgill.cs.jetuml.geom.Point;
@@ -56,6 +50,20 @@ import ca.mcgill.cs.jetuml.graph.GraphElement;
 import ca.mcgill.cs.jetuml.graph.Node;
 import ca.mcgill.cs.jetuml.views.IconCreator;
 
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.ButtonBase;
+import javafx.scene.control.Label;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+
 /**
  *  A collapsible tool bar than contains various tools and optional
  *  command shortcut buttons. Only one tool can be selected at the time.
@@ -64,8 +72,12 @@ import ca.mcgill.cs.jetuml.views.IconCreator;
  *  
  *  @author Martin P. Robillard
  */
+
+// Do we need a separate button for collapsed and expanded?
+// Rename pToolTip to pLabel?
+
 @SuppressWarnings("serial")
-public class ToolBar extends JPanel
+public class ToolBar extends JFXPanel
 {
 	private static final int BUTTON_SIZE = 25;
 	private static final int H_PADDING = 5;
@@ -73,10 +85,22 @@ public class ToolBar extends JPanel
 	private static final String EXPAND = "<<";
 	private static final String COLLAPSE = ">>";
 	
-	private ArrayList<JToggleButton> aButtons = new ArrayList<>();
-	private ArrayList<JToggleButton> aButtonsEx = new ArrayList<>();
-	private JPanel aToolPanel = new JPanel(new VerticalLayout());
-	private JPanel aToolPanelEx = new JPanel(new VerticalLayout());
+//	private ArrayList<JToggleButton> aButtons = new ArrayList<>();
+//	private ArrayList<JToggleButton> aButtonsEx = new ArrayList<>();
+	private ArrayList<ToggleButton> aButtons = new ArrayList<>();
+	private ArrayList<ToggleButton> aButtonsEx = new ArrayList<>();
+//	private JPanel aToolPanel = new JPanel(new VerticalLayout());
+//	private JPanel aToolPanelEx = new JPanel(new VerticalLayout());
+	private JFXPanel aToolPanel = new JFXPanel();
+	private JFXPanel aToolPanelEx = new JFXPanel();
+	
+	// NEEDED HERE??
+	private BorderPane layout = new BorderPane();
+	private BorderPane layoutEx = new BorderPane();
+	
+	private VBox toolsLayout = new VBox();
+	private VBox toolsLayoutEx = new VBox();
+	// Add vBox to border pane
 	private ArrayList<GraphElement> aTools = new ArrayList<>();
 	private JPopupMenu aPopupMenu = new JPopupMenu();
 
@@ -86,18 +110,32 @@ public class ToolBar extends JPanel
 	 */
 	public ToolBar(Graph pGraph)
 	{
-		ButtonGroup group = new ButtonGroup();
-		ButtonGroup groupEx = new ButtonGroup();
-		setLayout(new BorderLayout());
+//		ButtonGroup group = new ButtonGroup();
+//		ButtonGroup groupEx = new ButtonGroup();
+		ToggleGroup group = new ToggleGroup();
+		ToggleGroup groupEx = new ToggleGroup();
+		
+		// Adjust the layout (NEED TO COMPLETE)
+//		setLayout(new BorderLayout());
+		toolsLayout.setPadding(new Insets(10,10,10, 10));
+		layout.setCenter(toolsLayout);
+		
+		
 		createSelectionTool(group, groupEx);
 		createNodesAndEdgesTools(pGraph, group, groupEx);
-		addCopyToClipboard();
-		createExpandButton();
-		freeCtrlTab();
-		add(aToolPanel, BorderLayout.CENTER);
+		
+		//ADJUST AFTER MAIN IS DONE
+//		addCopyToClipboard();
+//		createExpandButton();
+//		freeCtrlTab();
+//		add(aToolPanel, BorderLayout.CENTER);
+		
+		//ADJUST 
+		Scene scene = new Scene(layout, 200, 300);
+		this.setScene(scene);
 	}
 	
-	private void createSelectionTool(ButtonGroup pGroup, ButtonGroup pGroupEx)
+	private void createSelectionTool(ToggleGroup pGroup, ToggleGroup pGroupEx)
 	{
 		installTool(IconCreator.createSelectionIcon(), 
 				ResourceBundle.getBundle("ca.mcgill.cs.jetuml.gui.EditorStrings").getString("grabber.tooltip"), 
@@ -111,31 +149,72 @@ public class ToolBar extends JPanel
 	 * @param pTool the object representing the tool
 	 * @param pIsSelected true if the tool is initially selected.
 	 */
-	private void installTool( Icon pIcon, String pToolTip, GraphElement pTool, boolean pIsSelected, ButtonGroup pCollapsed, ButtonGroup pExpanded )
+	private void installTool( Icon pIcon, String pToolTip, GraphElement pTool, boolean pIsSelected, ToggleGroup pCollapsed, ToggleGroup pExpanded )
 	{
-		final JToggleButton button = new JToggleButton(pIcon);
-		button.setToolTipText(pToolTip);
-		pCollapsed.add(button);
+//		final JToggleButton button = new JToggleButton(pIcon);
+		final ToggleButton button = new ToggleButton(pToolTip+" replace");
+		button.setStyle("-fx-focus-color: transparent;");
+		// ADD GRAPHIC LATER
+		
+		// Sets the tooltip
+		Tooltip toolTip = new Tooltip(pToolTip);
+		Tooltip.install(button, toolTip);
+		
+//		button.setToolTipText(pToolTip);
+//		pCollapsed.add(button);
+		
+		//Add button to toggle group and to the pane
+		button.setToggleGroup(pCollapsed);
+		toolsLayout.getChildren().add(button);
+		
 		aButtons.add(button);
-		aToolPanel.add(button);
+//		aToolPanel.add(button);
 		button.setSelected(pIsSelected);
 		aTools.add(pTool);
 		
-		final JToggleButton buttonEx = new JToggleButton(pIcon);
-		buttonEx.setToolTipText(pToolTip);
-		pExpanded.add(buttonEx);
-		aButtonsEx.add(buttonEx);
 		
-		aToolPanelEx.add(createExpandedRowElement(buttonEx, pToolTip));
+
+//		final JToggleButton buttonEx = new JToggleButton(pIcon);
+		final ToggleButton buttonEx = new ToggleButton(pToolTip+" replace");
+		buttonEx.setStyle("-fx-focus-color: transparent;");
+		
+		// Sets the tooltip (move installs of tooltips later in code?)
+		Tooltip.install(buttonEx, toolTip);
+		
+//		buttonEx.setToolTipText(pToolTip);
+//		pExpanded.add(buttonEx);
+		
+		// Add button to toggle group
+		buttonEx.setToggleGroup(pExpanded);
+		
+		
+		
+		aButtonsEx.add(buttonEx);
+	
+		// Add button to VBox
+		toolsLayoutEx.getChildren().add(createExpandedRowElement(buttonEx, pToolTip));
+		
+//		aToolPanelEx.add(createExpandedRowElement(buttonEx, pToolTip));
 		buttonEx.setSelected(pIsSelected);
       
+		button.setOnAction((e)->{
+			button.setSelected(true);
+			buttonEx.setSelected(true);
+		});
+		buttonEx.setOnAction((e)->{
+			button.setSelected(true);
+			buttonEx.setSelected(true);
+		});
+		
 		JMenuItem item = new JMenuItem(pToolTip, pIcon);
 		item.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent pEvent)
 			{
-				button.setSelected(true);
-				buttonEx.setSelected(true);
+				Platform.runLater(()->{
+					button.setSelected(true);
+					buttonEx.setSelected(true);
+				});
 			}
 		});
 		aPopupMenu.add(item);
@@ -144,19 +223,29 @@ public class ToolBar extends JPanel
 	/*
 	 * Return a panel with a button on the left and a label on the right
 	 */
-	private JPanel createExpandedRowElement(JComponent pButton, String pToolTip)
+	private Pane createExpandedRowElement(ButtonBase pButton, String pToolTip)
 	{
-		JPanel linePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		linePanel.add(pButton);
-		JLabel label = new JLabel(pToolTip);
-		Font font = new Font(label.getFont().getFontName(), Font.PLAIN, FONT_SIZE);
-		label.setFont(font);
-		label.setBorder(BorderFactory.createEmptyBorder(0, H_PADDING, 0, H_PADDING));
-		linePanel.add(label);
-		return linePanel;
+		// Create HBox and add to VBox
+		Label buttonLabel = new Label(pToolTip);
+		HBox buttonLayout = new HBox();
+		buttonLayout.getChildren().addAll(pButton, buttonLabel);
+		// ADJUST FONT/BORDER
+		
+		return buttonLayout;
+		
+		
+		
+//		JPanel linePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+//		linePanel.add(pButton);
+//		JLabel label = new JLabel(pToolTip);
+//		Font font = new Font(label.getFont().getFontName(), Font.PLAIN, FONT_SIZE);
+//		label.setFont(font);
+//		label.setBorder(BorderFactory.createEmptyBorder(0, H_PADDING, 0, H_PADDING));
+//		linePanel.add(label);
+//		return linePanel;
 	}
 	
-	private void createNodesAndEdgesTools(Graph pGraph, ButtonGroup pGroup, ButtonGroup pGroupEx)
+	private void createNodesAndEdgesTools(Graph pGraph, ToggleGroup pGroup, ToggleGroup pGroupEx)
 	{
 		ResourceBundle resources = ResourceBundle.getBundle(pGraph.getClass().getName() + "Strings");
 
@@ -207,11 +296,11 @@ public class ToolBar extends JPanel
 	 */
 	public void setToolToBeSelect()
 	{
-		for( JToggleButton button : aButtons )
+		for( ToggleButton button : aButtons )
 		{
 			button.setSelected(false);
 		}
-		for( JToggleButton button : aButtonsEx )
+		for( ToggleButton button : aButtonsEx )
 		{
 			button.setSelected(false);
 		}
@@ -230,19 +319,22 @@ public class ToolBar extends JPanel
 		button.setToolTipText(toolTip);
 		if( aButtons.size() > 0 )
 		{
-			button.setPreferredSize(aButtons.get(0).getPreferredSize());
+			//FIX
+			//button.setPreferredSize(aButtons.get(0).getPreferredSize());
 		}
 		aToolPanel.add(button);
 
 		
 		final JButton buttonEx = new JButton(new ImageIcon(imageLocation));
 		buttonEx.setToolTipText(toolTip);
-		aToolPanelEx.add(createExpandedRowElement(buttonEx, toolTip));
+		//FIX
+		//aToolPanelEx.add(createExpandedRowElement(buttonEx, toolTip));
 		
 		if( aButtons.size() > 0 )
 		{
-			button.setPreferredSize(aButtons.get(0).getPreferredSize());
-			buttonEx.setPreferredSize(aButtons.get(0).getPreferredSize());
+			//FIX
+			//button.setPreferredSize(aButtons.get(0).getPreferredSize());
+			//buttonEx.setPreferredSize(aButtons.get(0).getPreferredSize());
 		}
 
 		button.addActionListener(new ActionListener()
@@ -318,7 +410,7 @@ public class ToolBar extends JPanel
 	
 	private int getSelectedButtonIndex()
 	{
-		ArrayList<JToggleButton> activeButtons = aButtons;
+		ArrayList<ToggleButton> activeButtons = aButtons;
 		if( isExpanded() )
 		{
 			activeButtons = aButtonsEx;
@@ -326,7 +418,7 @@ public class ToolBar extends JPanel
 		
 		for(int i = 0; i < activeButtons.size(); i++)
 		{
-			JToggleButton button = activeButtons.get(i);
+			ToggleButton button = activeButtons.get(i);
 			if(button.isSelected())
 			{
 				return i;
