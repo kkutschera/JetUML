@@ -61,6 +61,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -82,14 +83,13 @@ import javafx.scene.layout.VBox;
 @SuppressWarnings("serial")
 public class ToolBar extends JFXPanel
 {
-	private static final int BUTTON_SIZE = 25;
+//	private static final int BUTTON_SIZE = 25;
+	private static final int BUTTON_SIZE = 50;
 	private static final int H_PADDING = 5;
 	private static final int FONT_SIZE = 14;
 	private static final String EXPAND = "<<";
 	private static final String COLLAPSE = ">>";
 	
-//	private ArrayList<JToggleButton> aButtons = new ArrayList<>();
-//	private ArrayList<JToggleButton> aButtonsEx = new ArrayList<>();
 	private ArrayList<ToggleButton> aButtons = new ArrayList<>();
 	private ArrayList<ToggleButton> aButtonsEx = new ArrayList<>();
 //	private JPanel aToolPanel = new JPanel(new VerticalLayout());
@@ -98,16 +98,16 @@ public class ToolBar extends JFXPanel
 	private JFXPanel aToolPanelEx = new JFXPanel();
 	
 	// NEEDED HERE??
-	private BorderPane layout = new BorderPane();
-	private BorderPane layoutEx = new BorderPane();
+	private BorderPane aLayout = new BorderPane();
+	private BorderPane aLayoutEx = new BorderPane();
 	
-	private VBox toolsLayout = new VBox();
-	private VBox toolsLayoutEx = new VBox();
+	private VBox aToolsLayout = new VBox();
+	private VBox aToolsLayoutEx = new VBox();
 	// Add vBox to border pane
 	private ArrayList<GraphElement> aTools = new ArrayList<>();
 	private JPopupMenu aPopupMenu = new JPopupMenu();
 	
-	private Scene scene;
+	private Scene aScene;
 
 	/**
      * Constructs the tool bar.
@@ -119,26 +119,26 @@ public class ToolBar extends JFXPanel
 		ToggleGroup groupEx = new ToggleGroup();
 		
 		// Adjust the layout (NEED TO COMPLETE)
-		toolsLayout.setPadding(new Insets(10,10,10,10));
-		layout.setCenter(toolsLayout);
+		aToolsLayout.setPadding(new Insets(10,10,10,10));
+		aLayout.setCenter(aToolsLayout);
 		
-		toolsLayoutEx.setPadding(new Insets(10,10,10,10));
-		layoutEx.setCenter(toolsLayoutEx);
+		aToolsLayoutEx.setPadding(new Insets(10,10,10,10));
+		aLayoutEx.setCenter(aToolsLayoutEx);
 		
 		
 		createSelectionTool(group, groupEx);
 		createNodesAndEdgesTools(pGraph, group, groupEx);
 		
 		//ADJUST AFTER MAIN IS DONE
-//		addCopyToClipboard();
+		addCopyToClipboard();
 		createExpandButton();
 //		freeCtrlTab();
 
 		add(aToolPanel, BorderLayout.CENTER);
 		
 		//ADJUST 
-		scene = new Scene(layout, 200, 300);
-		this.setScene(scene);
+		aScene = new Scene(aLayout, 200, 300);
+		this.setScene(aScene);
 	}
 	
 	private void createSelectionTool(ToggleGroup pGroup, ToggleGroup pGroupEx)
@@ -167,7 +167,7 @@ public class ToolBar extends JFXPanel
 		
 		//Add button to toggle group and to the pane
 		button.setToggleGroup(pCollapsed);
-		toolsLayout.getChildren().add(button);
+		aToolsLayout.getChildren().add(button);
 		
 		aButtons.add(button);
 		button.setSelected(pIsSelected);
@@ -186,16 +186,16 @@ public class ToolBar extends JFXPanel
 		aButtonsEx.add(buttonEx);
 	
 		// Add button to VBox
-		toolsLayoutEx.getChildren().add(createExpandedRowElement(buttonEx, pToolTip));
+		aToolsLayoutEx.getChildren().add(createExpandedRowElement(buttonEx, pToolTip));
 		
 		buttonEx.setSelected(pIsSelected);
       
-		button.setOnAction((e)->
+		button.setOnAction(pEvent->
 		{
 			button.setSelected(true);
 			buttonEx.setSelected(true);
 		});
-		buttonEx.setOnAction((e)->
+		buttonEx.setOnAction(pEvent->
 		{
 			button.setSelected(true);
 			buttonEx.setSelected(true);
@@ -228,8 +228,6 @@ public class ToolBar extends JFXPanel
 		// ADJUST FONT/BORDER
 		
 		return buttonLayout;
-		
-		
 		
 //		JPanel linePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 //		linePanel.add(pButton);
@@ -306,48 +304,40 @@ public class ToolBar extends JFXPanel
 
 	private void addCopyToClipboard()
 	{
-		URL imageLocation = getClass().getClassLoader().
+		String imageLocation = getClass().getClassLoader().
 				getResource(ResourceBundle.getBundle("ca.mcgill.cs.jetuml.gui.EditorStrings").
-						getString("toolbar.copyToClipBoard"));
-		String toolTip = ResourceBundle.getBundle("ca.mcgill.cs.jetuml.gui.EditorStrings").getString("file.copy_to_clipboard.text");
+						getString("toolbar.copyToClipBoard")).toString();
+		String toolTipText = ResourceBundle.getBundle("ca.mcgill.cs.jetuml.gui.EditorStrings").getString("file.copy_to_clipboard.text");
 		
-		final JButton button = new JButton(new ImageIcon(imageLocation));
-		button.setToolTipText(toolTip);
+		final Button button = new Button();
+		button.setStyle("-fx-focus-color: transparent;");
+		button.setGraphic(new ImageView(imageLocation));
+		Tooltip toolTip = new Tooltip(toolTipText);
+		Tooltip.install(button, toolTip);
 		if( aButtons.size() > 0 )
 		{
-			//FIX
-			//button.setPreferredSize(aButtons.get(0).getPreferredSize());
+			button.setPrefHeight(aButtons.get(0).getPrefHeight());
+			button.setPrefWidth(aButtons.get(0).getPrefWidth());
 		}
-		aToolPanel.add(button);
+		aToolsLayout.getChildren().add(button);
 
-		
-		final JButton buttonEx = new JButton(new ImageIcon(imageLocation));
-		buttonEx.setToolTipText(toolTip);
-		//FIX
-		//aToolPanelEx.add(createExpandedRowElement(buttonEx, toolTip));
+		final Button buttonEx = new Button();
+		buttonEx.setStyle("-fx-focus-color: transparent;");
+		buttonEx.setGraphic(new ImageView(imageLocation));
+		Tooltip.install(buttonEx, toolTip);
+
+		aToolsLayoutEx.getChildren().add(createExpandedRowElement(buttonEx, toolTipText));
 		
 		if( aButtons.size() > 0 )
 		{
-			//FIX
-			//button.setPreferredSize(aButtons.get(0).getPreferredSize());
-			//buttonEx.setPreferredSize(aButtons.get(0).getPreferredSize());
+			button.setPrefHeight(aButtons.get(0).getPrefHeight());
+			button.setPrefWidth(aButtons.get(0).getPrefWidth());
+			buttonEx.setPrefHeight(aButtons.get(0).getPrefHeight());
+			buttonEx.setPrefWidth(aButtons.get(0).getPrefWidth());
 		}
 
-		button.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent pEvent)
-			{
-				copyToClipboard();
-			}
-		});
-
-		buttonEx.addActionListener(new ActionListener()
-		{
-			public void actionPerformed(ActionEvent pEvent)
-			{
-				copyToClipboard();
-			}
-		});
+		button.setOnAction(pEvent-> copyToClipboard());
+		buttonEx.setOnAction(pEvent-> copyToClipboard());
 	}
 	
 	private void copyToClipboard()
@@ -375,29 +365,32 @@ public class ToolBar extends JFXPanel
 		Tooltip.install(collapseButton, collapseToolTip);
 		
 		//ADJUST SIZES
-//		expandButton.setPreferredSize(new Dimension(BUTTON_SIZE, BUTTON_SIZE));
+		expandButton.setPrefHeight(BUTTON_SIZE);
+		expandButton.setPrefWidth(BUTTON_SIZE);
+		collapseButton.setPrefHeight(BUTTON_SIZE);
+		collapseButton.setPrefWidth(BUTTON_SIZE);
 		
-		expandButton.setOnAction((e)->
+		expandButton.setOnAction(pEvent ->
 		{
 			synchronizeToolSelection();
 			aToolPanelEx.setBounds(aToolPanel.getBounds());
 			remove(aToolPanel);
 			add(aToolPanelEx, BorderLayout.CENTER);
-			scene.setRoot(layoutEx);
+			aScene.setRoot(aLayoutEx);
 			
 		});
-		collapseButton.setOnAction((e)->
+		collapseButton.setOnAction(pEvent -> 
 		{
 			synchronizeToolSelection();
 			aToolPanel.setBounds(aToolPanelEx.getBounds());
 			remove(aToolPanelEx);
 			add(aToolPanel, BorderLayout.CENTER);
-			scene.setRoot(layout);
+			aScene.setRoot(aLayout);
 		});
 		
 		// adds buttons to layout
-		layout.setBottom(expandButton);
-		layoutEx.setBottom(collapseButton);
+		aLayout.setBottom(expandButton);
+		aLayoutEx.setBottom(collapseButton);
 	}
 	
 	private void synchronizeToolSelection()
