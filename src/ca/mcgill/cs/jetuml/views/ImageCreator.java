@@ -21,7 +21,8 @@ import ca.mcgill.cs.jetuml.gui.GraphPanel;
  * Utility class to create icons that are drawn
  * using graphic primitives.
  */
-public final class ImageCreator {
+public final class ImageCreator 
+{
 	private static final int BUTTON_SIZE = 25;
 	private static final int OFFSET = 3;
 	
