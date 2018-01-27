@@ -20,40 +20,20 @@
  *******************************************************************************/
 package ca.mcgill.cs.jetuml.gui;
 
-import java.awt.AWTKeyStroke;
-import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.KeyboardFocusManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.ResourceBundle;
-import java.util.Set;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
-
-import ca.mcgill.cs.jetuml.geom.Point;
-import ca.mcgill.cs.jetuml.graph.Edge;
-import ca.mcgill.cs.jetuml.graph.Graph;
-import ca.mcgill.cs.jetuml.graph.GraphElement;
-import ca.mcgill.cs.jetuml.graph.Node;
-import ca.mcgill.cs.jetuml.views.IconCreator;
+import javax.swing.SwingUtilities;
 
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
@@ -61,11 +41,22 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+
+import ca.mcgill.cs.jetuml.geom.Point;
+import ca.mcgill.cs.jetuml.graph.Edge;
+import ca.mcgill.cs.jetuml.graph.Graph;
+import ca.mcgill.cs.jetuml.graph.GraphElement;
+import ca.mcgill.cs.jetuml.graph.Node;
+import ca.mcgill.cs.jetuml.views.IconCreator;
+import ca.mcgill.cs.jetuml.views.ImageCreator;
+
 
 /**
  *  A collapsible tool bar than contains various tools and optional
@@ -76,9 +67,7 @@ import javafx.scene.layout.VBox;
  *  @author Martin P. Robillard
  */
 
-// Do we need a separate button for collapsed and expanded?
-// Rename pToolTip to pLabel?
-// STYLE CHECKER
+// CREATE A VERTICAL LAYOUT IN FX (anchor, flow??)
 
 @SuppressWarnings("serial")
 public class ToolBar extends JFXPanel
@@ -86,24 +75,20 @@ public class ToolBar extends JFXPanel
 //	private static final int BUTTON_SIZE = 25;
 	private static final int BUTTON_SIZE = 50;
 	private static final int H_PADDING = 5;
-	private static final int FONT_SIZE = 14;
+	private static final int V_PADDING = 5;
+	private static final int FONT_SIZE = 20;
 	private static final String EXPAND = "<<";
 	private static final String COLLAPSE = ">>";
 	
 	private ArrayList<ToggleButton> aButtons = new ArrayList<>();
 	private ArrayList<ToggleButton> aButtonsEx = new ArrayList<>();
-//	private JPanel aToolPanel = new JPanel(new VerticalLayout());
-//	private JPanel aToolPanelEx = new JPanel(new VerticalLayout());
-	private JFXPanel aToolPanel = new JFXPanel();
-	private JFXPanel aToolPanelEx = new JFXPanel();
 	
-	// NEEDED HERE??
 	private BorderPane aLayout = new BorderPane();
 	private BorderPane aLayoutEx = new BorderPane();
 	
-	private VBox aToolsLayout = new VBox();
-	private VBox aToolsLayoutEx = new VBox();
-	// Add vBox to border pane
+	private VBox aToolsLayout = new VBox(V_PADDING);
+	private VBox aToolsLayoutEx = new VBox(V_PADDING);
+	
 	private ArrayList<GraphElement> aTools = new ArrayList<>();
 	private JPopupMenu aPopupMenu = new JPopupMenu();
 	
@@ -118,32 +103,28 @@ public class ToolBar extends JFXPanel
 		ToggleGroup group = new ToggleGroup();
 		ToggleGroup groupEx = new ToggleGroup();
 		
-		// Adjust the layout (NEED TO COMPLETE)
-		aToolsLayout.setPadding(new Insets(10,10,10,10));
+		aToolsLayout.setPadding(new Insets(V_PADDING, H_PADDING, V_PADDING, H_PADDING));
 		aLayout.setCenter(aToolsLayout);
 		
-		aToolsLayoutEx.setPadding(new Insets(10,10,10,10));
+		aToolsLayoutEx.setPadding(new Insets(V_PADDING, H_PADDING, V_PADDING, H_PADDING));
 		aLayoutEx.setCenter(aToolsLayoutEx);
-		
 		
 		createSelectionTool(group, groupEx);
 		createNodesAndEdgesTools(pGraph, group, groupEx);
 		
-		//ADJUST AFTER MAIN IS DONE
 		addCopyToClipboard();
 		createExpandButton();
-//		freeCtrlTab();
-
-		add(aToolPanel, BorderLayout.CENTER);
 		
 		//ADJUST 
-		aScene = new Scene(aLayout, 200, 300);
+		aScene = new Scene(aLayout);
 		this.setScene(aScene);
+		Scene aSceneEx = new Scene(aLayoutEx,500, 500);
+		this.setScene(aSceneEx);
 	}
 	
 	private void createSelectionTool(ToggleGroup pGroup, ToggleGroup pGroupEx)
 	{
-		installTool(IconCreator.createSelectionIcon(), 
+		installTool(ImageCreator.createSelectionImage(), IconCreator.createSelectionIcon(), 
 				ResourceBundle.getBundle("ca.mcgill.cs.jetuml.gui.EditorStrings").getString("grabber.tooltip"), 
 				null, true, pGroup, pGroupEx);
 	}
@@ -155,41 +136,33 @@ public class ToolBar extends JFXPanel
 	 * @param pTool the object representing the tool
 	 * @param pIsSelected true if the tool is initially selected.
 	 */
-	private void installTool( Icon pIcon, String pToolTip, GraphElement pTool, boolean pIsSelected, ToggleGroup pCollapsed, ToggleGroup pExpanded )
+	private void installTool(Image pImage, 
+							 Icon pIcon, 
+							 String pToolTip, 
+							 GraphElement pTool, 
+							 boolean pIsSelected, 
+							 ToggleGroup pCollapsed, 
+							 ToggleGroup pExpanded)
 	{
-		final ToggleButton button = new ToggleButton(pToolTip+" replace");
-		button.setStyle("-fx-focus-color: transparent;");
-		// ADD GRAPHIC LATER
-		
-		// Sets the tooltip
-		Tooltip toolTip = new Tooltip(pToolTip);
-		Tooltip.install(button, toolTip);
-		
-		//Add button to toggle group and to the pane
+		final ToggleButton button = new ToggleButton();
+		button.setGraphic(new ImageView(pImage));
 		button.setToggleGroup(pCollapsed);
-		aToolsLayout.getChildren().add(button);
-		
 		aButtons.add(button);
 		button.setSelected(pIsSelected);
 		aTools.add(pTool);
+		aToolsLayout.getChildren().add(button);
 		
-		
-		final ToggleButton buttonEx = new ToggleButton(pToolTip+" replace");
-		buttonEx.setStyle("-fx-focus-color: transparent;");
-		
-		// Sets the tooltip (move installs of tooltips later in code?)
+		final ToggleButton buttonEx = new ToggleButton();
+		buttonEx.setGraphic(new ImageView(pImage));
+		buttonEx.setToggleGroup(pExpanded);		
+		aButtonsEx.add(buttonEx);
+		buttonEx.setSelected(pIsSelected);
+		aToolsLayoutEx.getChildren().add(createExpandedRowElement(buttonEx, pToolTip));
+	
+		Tooltip toolTip = new Tooltip(pToolTip);
+		Tooltip.install(button, toolTip);
 		Tooltip.install(buttonEx, toolTip);
 
-		// Add button to toggle group
-		buttonEx.setToggleGroup(pExpanded);
-		
-		aButtonsEx.add(buttonEx);
-	
-		// Add button to VBox
-		aToolsLayoutEx.getChildren().add(createExpandedRowElement(buttonEx, pToolTip));
-		
-		buttonEx.setSelected(pIsSelected);
-      
 		button.setOnAction(pEvent->
 		{
 			button.setSelected(true);
@@ -217,26 +190,16 @@ public class ToolBar extends JFXPanel
 	}
 	
 	/*
-	 * Return a panel with a button on the left and a label on the right
+	 * Return a pane with a button on the left and a label on the right
 	 */
 	private Pane createExpandedRowElement(ButtonBase pButton, String pToolTip)
 	{
-		// Create HBox and add to VBox
 		Label buttonLabel = new Label(pToolTip);
+		Font font = new Font(buttonLabel.getFont().getName(), FONT_SIZE);
+		buttonLabel.setFont(font);
 		HBox buttonLayout = new HBox();
 		buttonLayout.getChildren().addAll(pButton, buttonLabel);
-		// ADJUST FONT/BORDER
-		
 		return buttonLayout;
-		
-//		JPanel linePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-//		linePanel.add(pButton);
-//		JLabel label = new JLabel(pToolTip);
-//		Font font = new Font(label.getFont().getFontName(), Font.PLAIN, FONT_SIZE);
-//		label.setFont(font);
-//		label.setBorder(BorderFactory.createEmptyBorder(0, H_PADDING, 0, H_PADDING));
-//		linePanel.add(label);
-//		return linePanel;
 	}
 	
 	private void createNodesAndEdgesTools(Graph pGraph, ToggleGroup pGroup, ToggleGroup pGroupEx)
@@ -246,33 +209,16 @@ public class ToolBar extends JFXPanel
 		Node[] nodeTypes = pGraph.getNodePrototypes();
 		for(int i = 0; i < nodeTypes.length; i++)
 		{
-			installTool(IconCreator.createIcon(nodeTypes[i]), resources.getString("node" + (i + 1) + ".tooltip"), 
-			nodeTypes[i], false, pGroup, pGroupEx);
+			installTool(ImageCreator.createImage(nodeTypes[i]), IconCreator.createIcon(nodeTypes[i]), 
+					resources.getString("node" + (i + 1) + ".tooltip"), nodeTypes[i], false, pGroup, pGroupEx);
 		}
 		
 		Edge[] edgeTypes = pGraph.getEdgePrototypes();
 		for(int i = 0; i < edgeTypes.length; i++)
 		{
-			installTool(IconCreator.createIcon(edgeTypes[i]), resources.getString("edge" + (i + 1) + ".tooltip"), 
-					edgeTypes[i], false, pGroup, pGroupEx);
+			installTool(ImageCreator.createImage(edgeTypes[i]), IconCreator.createIcon(edgeTypes[i]), 
+					resources.getString("edge" + (i + 1) + ".tooltip"), edgeTypes[i], false, pGroup, pGroupEx);
 		}
-	}
-	
-	/*
-	 * Free up ctrl TAB for cycling windows
-	 */
-	private void freeCtrlTab()
-	{
-		Set<AWTKeyStroke> oldKeys = getFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS);
-		HashSet<AWTKeyStroke> newKeys = new HashSet<>();
-		newKeys.addAll(oldKeys);
-		newKeys.remove(KeyStroke.getKeyStroke("ctrl TAB"));
-		setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS, newKeys);
-		oldKeys = getFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS);
-		newKeys = new HashSet<>();
-		newKeys.addAll(oldKeys);
-		newKeys.remove(KeyStroke.getKeyStroke("ctrl shift TAB"));
-		setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, newKeys); 
 	}
 	
 	/**
@@ -310,7 +256,6 @@ public class ToolBar extends JFXPanel
 		String toolTipText = ResourceBundle.getBundle("ca.mcgill.cs.jetuml.gui.EditorStrings").getString("file.copy_to_clipboard.text");
 		
 		final Button button = new Button();
-		button.setStyle("-fx-focus-color: transparent;");
 		button.setGraphic(new ImageView(imageLocation));
 		Tooltip toolTip = new Tooltip(toolTipText);
 		Tooltip.install(button, toolTip);
@@ -322,7 +267,6 @@ public class ToolBar extends JFXPanel
 		aToolsLayout.getChildren().add(button);
 
 		final Button buttonEx = new Button();
-		buttonEx.setStyle("-fx-focus-color: transparent;");
 		buttonEx.setGraphic(new ImageView(imageLocation));
 		Tooltip.install(buttonEx, toolTip);
 
@@ -354,9 +298,7 @@ public class ToolBar extends JFXPanel
 	private void createExpandButton()
 	{
 		final Button expandButton = new Button(EXPAND);
-		expandButton.setStyle("-fx-focus-color: transparent;");
 		final Button collapseButton = new Button(COLLAPSE);
-		collapseButton.setStyle("-fx-focus-color: transparent;");
 		final String expandString = ResourceBundle.getBundle("ca.mcgill.cs.jetuml.gui.EditorStrings").getString("toolbar.expand");
 		final String collapseString = ResourceBundle.getBundle("ca.mcgill.cs.jetuml.gui.EditorStrings").getString("toolbar.collapse");
 		Tooltip expandToolTip = new Tooltip(expandString);
@@ -364,7 +306,6 @@ public class ToolBar extends JFXPanel
 		Tooltip.install(expandButton, expandToolTip);
 		Tooltip.install(collapseButton, collapseToolTip);
 		
-		//ADJUST SIZES
 		expandButton.setPrefHeight(BUTTON_SIZE);
 		expandButton.setPrefWidth(BUTTON_SIZE);
 		collapseButton.setPrefHeight(BUTTON_SIZE);
@@ -373,22 +314,15 @@ public class ToolBar extends JFXPanel
 		expandButton.setOnAction(pEvent ->
 		{
 			synchronizeToolSelection();
-			aToolPanelEx.setBounds(aToolPanel.getBounds());
-			remove(aToolPanel);
-			add(aToolPanelEx, BorderLayout.CENTER);
 			aScene.setRoot(aLayoutEx);
-			
+			SwingUtilities.invokeLater(() -> this.setPreferredSize(this.getPreferredSize()));
 		});
 		collapseButton.setOnAction(pEvent -> 
 		{
 			synchronizeToolSelection();
-			aToolPanel.setBounds(aToolPanelEx.getBounds());
-			remove(aToolPanelEx);
-			add(aToolPanel, BorderLayout.CENTER);
 			aScene.setRoot(aLayout);
 		});
 		
-		// adds buttons to layout
 		aLayout.setBottom(expandButton);
 		aLayoutEx.setBottom(collapseButton);
 	}
@@ -408,7 +342,6 @@ public class ToolBar extends JFXPanel
 		{
 			activeButtons = aButtonsEx;
 		}
-		
 		for(int i = 0; i < activeButtons.size(); i++)
 		{
 			ToggleButton button = activeButtons.get(i);
@@ -426,12 +359,9 @@ public class ToolBar extends JFXPanel
 	 */
 	private boolean isExpanded()
 	{
-		for( Component component : getComponents() )
+		if(aScene.getRoot() == aLayoutEx) 
 		{
-			if( component == aToolPanelEx )
-			{
-				return true;
-			}
+			return true;
 		}
 		return false;
 	}
