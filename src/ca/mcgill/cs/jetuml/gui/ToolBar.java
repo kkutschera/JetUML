@@ -61,7 +61,8 @@ import ca.mcgill.cs.jetuml.views.ImageCreator;
  *  The tool bar also controls a pop-up menu with the same tools as 
  *  the tool bar.
  *  
- *  @author Martin P. Robillard
+ *  @author Martin P. Robillard - Original Code
+ *  @author Kaylee I. Kutschera - Migration to JavaFX
  */
 
 @SuppressWarnings("serial")

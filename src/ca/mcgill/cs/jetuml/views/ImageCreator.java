@@ -20,6 +20,8 @@ import ca.mcgill.cs.jetuml.gui.GraphPanel;
 /**
  * Utility class to create icons that are drawn
  * using graphic primitives.
+ * 
+ * @author Kaylee I. Kutschera - Based on code by Martin P. Robillard
  */
 public final class ImageCreator 
 {
