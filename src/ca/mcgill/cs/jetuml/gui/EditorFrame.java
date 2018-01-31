@@ -21,11 +21,13 @@
 
 package ca.mcgill.cs.jetuml.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Panel;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -64,6 +66,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.MenuEvent;
@@ -82,6 +85,15 @@ import ca.mcgill.cs.jetuml.geom.Rectangle;
 import ca.mcgill.cs.jetuml.graph.Graph;
 import ca.mcgill.cs.jetuml.persistence.DeserializationException;
 import ca.mcgill.cs.jetuml.persistence.PersistenceService;
+import javafx.application.Platform;
+import javafx.embed.swing.JFXPanel;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 
 /**
  * This desktop frame contains panes that show graphs.
@@ -106,15 +118,22 @@ public class EditorFrame extends JFrame
 	private ResourceBundle aEditorResources;
 	private JTabbedPane aTabbedPane;
 	private ArrayList<JInternalFrame> aTabs = new ArrayList<>();
-	private JMenu aNewMenu;
+	
+	private Menu aNewMenu;
+	private JMenu aNewJMenu;
 	
 	private RecentFilesQueue aRecentFiles = new RecentFilesQueue();
-	private JMenu aRecentFilesMenu;
+
+	private Menu aRecentFilesMenu;
+	private JMenu aRecentFilesJMenu;
+	
+	private MenuBar aMenuBar;
 	
 	private WelcomeTab aWelcomeTab;
 	
 	// Menus or menu items that must be disabled if there is no current diagram.
-	private final List<JMenuItem> aDiagramRelevantMenus = new ArrayList<>();
+	private final List<MenuItem> aDiagramRelevantMenus = new ArrayList<>();
+	private final List<JMenuItem> aDiagramRelevantJMenus = new ArrayList<>();
 
 	/**
 	 * Constructs a blank frame with a desktop pane
@@ -160,78 +179,277 @@ public class EditorFrame extends JFrame
 			public void stateChanged(ChangeEvent pEven)
 			{
 				boolean noGraphFrame = noCurrentGraphFrame();
-				for( JMenuItem menuItem : aDiagramRelevantMenus )
+				for( JMenuItem menuItem : aDiagramRelevantJMenus )
 				{
 					menuItem.setEnabled(!noGraphFrame);
 				}
 			}
 		});
-		setContentPane(aTabbedPane);
+//		setContentPane(aTabbedPane);
 
-     	setJMenuBar(new JMenuBar());
+//     	setJMenuBar(new JMenuBar());
      	
-		createFileMenu(factory);
-		createEditMenu(factory);
-		createViewMenu(factory);
-     	createHelpMenu(factory);
+		createFileJMenu(factory);
+		createEditJMenu(factory);
+		createViewJMenu(factory);
+     	
+     	JFXPanel fxPanel = new JFXPanel();
+     	this.add(fxPanel);
+     	
+     	Panel mainPanel = new Panel();
+     	mainPanel.setLayout(new BorderLayout());
+     	mainPanel.add(fxPanel, BorderLayout.NORTH);
+     	mainPanel.add(aTabbedPane, BorderLayout.CENTER);
+        
+     	
+     	// WORK OUT HOW TO ENABLE MENU ITEMS
+     	Platform.runLater(() ->
+     	{
+     		aMenuBar = new MenuBar();
+     		createFileMenu(factory);
+     		createEditMenu(factory);
+     		createViewMenu(factory);
+     		createHelpMenu(factory);
+     		// add to menu bar
+            
+     		Group group = new Group();
+     		group.getChildren().add(aMenuBar);
+     		Scene scene = new Scene(group);
+     		fxPanel.setScene(scene);
+     	});
+     	
+     	setContentPane(mainPanel);
+     	
 	}
 	
-	private void createFileMenu(MenuFactory pFactory)
+//	private void createFileMenu(MenuFactory pFactory)
+//	{
+//		JMenuBar menuBar = getJMenuBar();
+//     	JMenu fileMenu = pFactory.createJMenu("file");
+//     	menuBar.add(fileMenu);
+//
+//     	aNewJMenu = pFactory.createJMenu("file.new");
+//     	fileMenu.add(aNewJMenu);
+//
+//     	JMenuItem fileOpenItem = pFactory.createJMenuItem("file.open", this, "openFile"); 
+//     	fileMenu.add(fileOpenItem); 
+//
+//     	aRecentFilesJMenu = pFactory.createJMenu("file.recent");
+//     	buildRecentFilesJMenu();
+//     	fileMenu.add(aRecentFilesJMenu);
+//     	
+//     	JMenuItem closeFileItem = pFactory.createJMenuItem("file.close", this, "close");
+//     	fileMenu.add(closeFileItem);
+//     	aDiagramRelevantMenus.add(closeFileItem);
+//     	closeFileItem.setEnabled(!noCurrentGraphFrame());
+//      
+//     	JMenuItem fileSaveItem = pFactory.createJMenuItem("file.save", this, "save"); 
+//     	fileMenu.add(fileSaveItem);
+//     	aDiagramRelevantMenus.add(fileSaveItem);
+//     	fileSaveItem.setEnabled(!noCurrentGraphFrame());
+//     	
+//     	JMenuItem fileSaveAsItem = pFactory.createJMenuItem("file.save_as", this, "saveAs");
+//     	fileMenu.add(fileSaveAsItem);
+//     	aDiagramRelevantMenus.add(fileSaveAsItem);
+//     	fileSaveAsItem.setEnabled(!noCurrentGraphFrame());
+//
+//     	JMenuItem fileExportItem = pFactory.createJMenuItem("file.export_image", this, "exportImage"); 
+//     	fileMenu.add(fileExportItem);
+//     	aDiagramRelevantMenus.add(fileExportItem);
+//     	fileExportItem.setEnabled(!noCurrentGraphFrame());
+//     	
+//     	JMenuItem fileCopyToClipboard = pFactory.createJMenuItem("file.copy_to_clipboard", this, "copyToClipboard"); 
+//     	fileMenu.add(fileCopyToClipboard);
+//     	aDiagramRelevantMenus.add(fileCopyToClipboard);
+//     	fileCopyToClipboard.setEnabled(!noCurrentGraphFrame());
+//     	
+//     	fileMenu.addSeparator();
+//
+//     	JMenuItem fileExitItem = pFactory.createJMenuItem("file.exit", this, "exit");
+//     	fileMenu.add(fileExitItem);
+//	}
+	
+	// create jmenu for welcome tab
+	// remove unnecessary once new menu bar up and running
+	private void createFileJMenu(MenuFactory pFactory)
 	{
-		JMenuBar menuBar = getJMenuBar();
-     	JMenu fileMenu = pFactory.createMenu("file");
-     	menuBar.add(fileMenu);
+		//remove this, make it just for the welcome tab
+		//JMenuBar menuBar = getJMenuBar();
+     	JMenu fileMenu = pFactory.createJMenu("file");
+     	//menuBar.add(fileMenu);
 
-     	aNewMenu = pFactory.createMenu("file.new");
-     	fileMenu.add(aNewMenu);
+     	aNewJMenu = pFactory.createJMenu("file.new");
+     	fileMenu.add(aNewJMenu);
 
-     	JMenuItem fileOpenItem = pFactory.createMenuItem("file.open", this, "openFile"); 
+     	JMenuItem fileOpenItem = pFactory.createJMenuItem("file.open", this, "openFile"); 
      	fileMenu.add(fileOpenItem); 
 
-     	aRecentFilesMenu = pFactory.createMenu("file.recent");
-     	buildRecentFilesMenu();
-     	fileMenu.add(aRecentFilesMenu);
+     	aRecentFilesJMenu = pFactory.createJMenu("file.recent");
+     	buildRecentFilesJMenu();
+     	fileMenu.add(aRecentFilesJMenu);
      	
-     	JMenuItem closeFileItem = pFactory.createMenuItem("file.close", this, "close");
+     	JMenuItem closeFileItem = pFactory.createJMenuItem("file.close", this, "close");
      	fileMenu.add(closeFileItem);
-     	aDiagramRelevantMenus.add(closeFileItem);
+     	aDiagramRelevantJMenus.add(closeFileItem);
      	closeFileItem.setEnabled(!noCurrentGraphFrame());
       
-     	JMenuItem fileSaveItem = pFactory.createMenuItem("file.save", this, "save"); 
+     	JMenuItem fileSaveItem = pFactory.createJMenuItem("file.save", this, "save"); 
      	fileMenu.add(fileSaveItem);
-     	aDiagramRelevantMenus.add(fileSaveItem);
+     	aDiagramRelevantJMenus.add(fileSaveItem);
      	fileSaveItem.setEnabled(!noCurrentGraphFrame());
      	
-     	JMenuItem fileSaveAsItem = pFactory.createMenuItem("file.save_as", this, "saveAs");
+     	JMenuItem fileSaveAsItem = pFactory.createJMenuItem("file.save_as", this, "saveAs");
      	fileMenu.add(fileSaveAsItem);
-     	aDiagramRelevantMenus.add(fileSaveAsItem);
+     	aDiagramRelevantJMenus.add(fileSaveAsItem);
      	fileSaveAsItem.setEnabled(!noCurrentGraphFrame());
 
-     	JMenuItem fileExportItem = pFactory.createMenuItem("file.export_image", this, "exportImage"); 
+     	JMenuItem fileExportItem = pFactory.createJMenuItem("file.export_image", this, "exportImage"); 
      	fileMenu.add(fileExportItem);
-     	aDiagramRelevantMenus.add(fileExportItem);
+     	aDiagramRelevantJMenus.add(fileExportItem);
      	fileExportItem.setEnabled(!noCurrentGraphFrame());
      	
-     	JMenuItem fileCopyToClipboard = pFactory.createMenuItem("file.copy_to_clipboard", this, "copyToClipboard"); 
+     	JMenuItem fileCopyToClipboard = pFactory.createJMenuItem("file.copy_to_clipboard", this, "copyToClipboard"); 
      	fileMenu.add(fileCopyToClipboard);
-     	aDiagramRelevantMenus.add(fileCopyToClipboard);
+     	aDiagramRelevantJMenus.add(fileCopyToClipboard);
      	fileCopyToClipboard.setEnabled(!noCurrentGraphFrame());
      	
      	fileMenu.addSeparator();
 
-     	JMenuItem fileExitItem = pFactory.createMenuItem("file.exit", this, "exit");
+     	JMenuItem fileExitItem = pFactory.createJMenuItem("file.exit", this, "exit");
      	fileMenu.add(fileExitItem);
 	}
 	
-	private void createEditMenu(MenuFactory pFactory)
+	
+	private void createFileMenu(MenuFactory pFactory)
 	{
-		JMenuBar menuBar = getJMenuBar();
-		JMenu editMenu = pFactory.createMenu("edit");
-     	menuBar.add(editMenu);
-     	aDiagramRelevantMenus.add(editMenu);
+     	Menu fileMenu = pFactory.createMenu("file");
+     	aMenuBar.getMenus().add(fileMenu);
+
+     	aNewMenu = pFactory.createMenu("file.new");
+     	fileMenu.getItems().add(aNewMenu);
+
+     	MenuItem fileOpenItem = pFactory.createMenuItem("file.open", pEvent -> this.openFile()); 
+     	fileMenu.getItems().add(fileOpenItem); 
+
+     	aRecentFilesMenu = pFactory.createMenu("file.recent");
+     	
+     	//UPDATE LATER
+     	//buildRecentFilesMenu();
+     	fileMenu.getItems().add(aRecentFilesMenu);
+     	
+     	MenuItem closeFileItem = pFactory.createMenuItem("file.close", pEvent -> this.close());
+     	fileMenu.getItems().add(closeFileItem);
+     	aDiagramRelevantMenus.add(closeFileItem);
+     	closeFileItem.setDisable(noCurrentGraphFrame());
+      
+     	MenuItem fileSaveItem = pFactory.createMenuItem("file.save", pEvent -> this.save()); 
+     	fileMenu.getItems().add(fileSaveItem);
+     	aDiagramRelevantMenus.add(fileSaveItem);
+     	fileSaveItem.setDisable(noCurrentGraphFrame());
+     	
+     	MenuItem fileSaveAsItem = pFactory.createMenuItem("file.save_as", pEvent -> this.saveAs());
+     	fileMenu.getItems().add(fileSaveAsItem);
+     	aDiagramRelevantMenus.add(fileSaveAsItem);
+     	fileSaveAsItem.setDisable(noCurrentGraphFrame());
+
+     	MenuItem fileExportItem = pFactory.createMenuItem("file.export_image", pEvent -> this.exportImage()); 
+     	fileMenu.getItems().add(fileExportItem);
+     	aDiagramRelevantMenus.add(fileExportItem);
+     	fileExportItem.setDisable(noCurrentGraphFrame());
+     	
+     	MenuItem fileCopyToClipboard = pFactory.createMenuItem("file.copy_to_clipboard", pEvent -> this.copyToClipboard()); 
+     	fileMenu.getItems().add(fileCopyToClipboard);
+     	aDiagramRelevantMenus.add(fileCopyToClipboard);
+     	fileCopyToClipboard.setDisable(noCurrentGraphFrame());
+     	
+     	fileMenu.getItems().add(new SeparatorMenuItem());
+
+     	MenuItem fileExitItem = pFactory.createMenuItem("file.exit", pEvent -> this.exit());
+     	fileMenu.getItems().add(fileExitItem);
+	}
+	
+//	private void createEditMenu(MenuFactory pFactory)
+//	{
+//		JMenuBar menuBar = getJMenuBar();
+//		JMenu editMenu = pFactory.createJMenu("edit");
+//     	menuBar.add(editMenu);
+//     	aDiagramRelevantJMenus.add(editMenu);
+//     	editMenu.setEnabled(!noCurrentGraphFrame());
+//     	
+//     	editMenu.add(pFactory.createJMenuItem("edit.undo", new ActionListener()
+//     	{
+//     		public void actionPerformed(ActionEvent pEvent)
+//     		{
+//     			if( noCurrentGraphFrame() )
+//     			{
+//     				return;
+//     			}
+//     			((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().undo();
+//     		}
+//     	}));
+//     	
+//     	editMenu.add(pFactory.createJMenuItem("edit.redo", new ActionListener()
+//     	{
+//     		public void actionPerformed(ActionEvent pEvent)
+//     		{
+//     			if( noCurrentGraphFrame() )
+//     			{
+//     				return;
+//     			}
+//     			((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().redo();
+//     		}
+//     	}));
+//     	
+//     	editMenu.add(pFactory.createJMenuItem("edit.selectall", new ActionListener()
+//     	{
+//     		public void actionPerformed(ActionEvent pEvent)
+//            {
+//     			if( noCurrentGraphFrame() )
+//     			{
+//     				return;
+//     			}
+//     			((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().selectAll();
+//            }
+//         }));
+//     	
+//     	editMenu.add(pFactory.createJMenuItem("edit.properties", new ActionListener()
+//     	{
+//     		public void actionPerformed(ActionEvent pEvent)
+//            {
+//     			if( noCurrentGraphFrame() )
+//     			{
+//     				return;
+//     			}
+//     			((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().editSelected();
+//            }
+//         }));
+//     	
+//     	editMenu.add(pFactory.createJMenuItem("edit.cut", this, "cut"));
+//     	editMenu.add(pFactory.createJMenuItem("edit.paste", this, "paste"));
+//     	editMenu.add(pFactory.createJMenuItem("edit.copy", this, "copy"));
+//     	
+//
+//     	editMenu.add(pFactory.createJMenuItem("edit.delete", new ActionListener()
+//     	{
+//            public void actionPerformed(ActionEvent pEvent)
+//            {
+//            	if( noCurrentGraphFrame() )
+//     			{
+//     				return;
+//     			}
+//     			((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().removeSelected();
+//            }
+//     	}));
+//	}
+	
+	//Remove if don't need
+	private void createEditJMenu(MenuFactory pFactory)
+	{
+		JMenu editMenu = pFactory.createJMenu("edit");
+     	aDiagramRelevantJMenus.add(editMenu);
      	editMenu.setEnabled(!noCurrentGraphFrame());
      	
-     	editMenu.add(pFactory.createMenuItem("edit.undo", new ActionListener()
+     	editMenu.add(pFactory.createJMenuItem("edit.undo", new ActionListener()
      	{
      		public void actionPerformed(ActionEvent pEvent)
      		{
@@ -243,7 +461,7 @@ public class EditorFrame extends JFrame
      		}
      	}));
      	
-     	editMenu.add(pFactory.createMenuItem("edit.redo", new ActionListener()
+     	editMenu.add(pFactory.createJMenuItem("edit.redo", new ActionListener()
      	{
      		public void actionPerformed(ActionEvent pEvent)
      		{
@@ -255,7 +473,7 @@ public class EditorFrame extends JFrame
      		}
      	}));
      	
-     	editMenu.add(pFactory.createMenuItem("edit.selectall", new ActionListener()
+     	editMenu.add(pFactory.createJMenuItem("edit.selectall", new ActionListener()
      	{
      		public void actionPerformed(ActionEvent pEvent)
             {
@@ -267,7 +485,7 @@ public class EditorFrame extends JFrame
             }
          }));
      	
-     	editMenu.add(pFactory.createMenuItem("edit.properties", new ActionListener()
+     	editMenu.add(pFactory.createJMenuItem("edit.properties", new ActionListener()
      	{
      		public void actionPerformed(ActionEvent pEvent)
             {
@@ -279,12 +497,12 @@ public class EditorFrame extends JFrame
             }
          }));
      	
-     	editMenu.add(pFactory.createMenuItem("edit.cut", this, "cut"));
-     	editMenu.add(pFactory.createMenuItem("edit.paste", this, "paste"));
-     	editMenu.add(pFactory.createMenuItem("edit.copy", this, "copy"));
+     	editMenu.add(pFactory.createJMenuItem("edit.cut", this, "cut"));
+     	editMenu.add(pFactory.createJMenuItem("edit.paste", this, "paste"));
+     	editMenu.add(pFactory.createJMenuItem("edit.copy", this, "copy"));
      	
 
-     	editMenu.add(pFactory.createMenuItem("edit.delete", new ActionListener()
+     	editMenu.add(pFactory.createJMenuItem("edit.delete", new ActionListener()
      	{
             public void actionPerformed(ActionEvent pEvent)
             {
@@ -297,16 +515,143 @@ public class EditorFrame extends JFrame
      	}));
 	}
 	
-	private void createViewMenu(MenuFactory pFactory)
+	private void createEditMenu(MenuFactory pFactory)
 	{
-		JMenuBar menuBar = getJMenuBar();
-		
-		JMenu viewMenu = pFactory.createMenu("view");
-     	menuBar.add(viewMenu);
-     	aDiagramRelevantMenus.add(viewMenu);
+		Menu editMenu = pFactory.createMenu("edit");
+     	aMenuBar.getMenus().add(editMenu);
+     	aDiagramRelevantMenus.add(editMenu);
+     	editMenu.setDisable(noCurrentGraphFrame());
+     	
+     	editMenu.getItems().add(pFactory.createMenuItem("edit.undo", pEvent ->
+     	{
+     		if( noCurrentGraphFrame() )
+     		{
+     			return;
+     		}
+     		SwingUtilities.invokeLater(() -> ((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().undo());
+     	}));
+     	
+     	editMenu.getItems().add(pFactory.createMenuItem("edit.redo", pEvent -> 
+     	{
+   			if( noCurrentGraphFrame() )
+     		{
+     			return;
+     		}
+     		SwingUtilities.invokeLater(() -> ((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().redo());	
+     	}));
+     	
+     	editMenu.getItems().add(pFactory.createMenuItem("edit.selectall", pEvent ->
+     	{
+     		if( noCurrentGraphFrame() )
+     		{
+     			return;
+     		}
+     		SwingUtilities.invokeLater(() -> ((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().selectAll());	
+         }));
+     	
+     	editMenu.getItems().add(pFactory.createMenuItem("edit.properties", pEvent -> 
+     	{
+   			if( noCurrentGraphFrame() )
+   			{
+     			return;
+     		}
+     		SwingUtilities.invokeLater(() -> ((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().editSelected());	
+         }));
+     	
+     	editMenu.getItems().add(pFactory.createMenuItem("edit.cut", pEvent -> this.cut()));
+     	editMenu.getItems().add(pFactory.createMenuItem("edit.paste", pEvent -> this.paste()));
+     	editMenu.getItems().add(pFactory.createMenuItem("edit.copy", pEvent -> this.copy()));
+     	
+
+     	editMenu.getItems().add(pFactory.createMenuItem("edit.delete", pEvent -> 
+     	{
+            if( noCurrentGraphFrame() )
+     		{
+     			return;
+   			}
+     		SwingUtilities.invokeLater(() -> ((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().removeSelected());	
+     	}));
+	}
+	
+//	private void createViewMenu(MenuFactory pFactory)
+//	{
+//		JMenuBar menuBar = getJMenuBar();
+//		
+//		JMenu viewMenu = pFactory.createJMenu("view");
+//     	menuBar.add(viewMenu);
+//     	aDiagramRelevantJMenus.add(viewMenu);
+//     	viewMenu.setEnabled(!noCurrentGraphFrame());
+//
+//     	viewMenu.add(pFactory.createJMenuItem("view.zoom_out", new ActionListener()
+//     	{
+//     		public void actionPerformed(ActionEvent pEvent)
+//     		{
+//     			if( noCurrentGraphFrame() )
+//     			{
+//     				return;
+//     			}
+//     			((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().changeZoom(-1);
+//     		}
+//         }));
+//
+//     	viewMenu.add(pFactory.createJMenuItem("view.zoom_in", new ActionListener()
+//     	{
+//            public void actionPerformed(ActionEvent pEvent)
+//            {
+//            	if( noCurrentGraphFrame() )
+//            	{
+//            		return;
+//            	}
+//            	((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().changeZoom(1);
+//            }
+//     	}));
+//      
+//     	final JCheckBoxMenuItem hideGridItem  = (JCheckBoxMenuItem) pFactory.createCheckBoxJMenuItem("view.hide_grid", new ActionListener()
+//     	{
+//            public void actionPerformed(ActionEvent pEvent)
+//            {
+//            	if( noCurrentGraphFrame() )
+//            	{
+//            		return;
+//            	}
+//            	GraphFrame frame = (GraphFrame)aTabbedPane.getSelectedComponent();
+//            	GraphPanel panel = frame.getGraphPanel();
+//            	JCheckBoxMenuItem menuItem = (JCheckBoxMenuItem) pEvent.getSource();               
+//            	panel.setHideGrid(menuItem.isSelected());
+//            }
+//        });
+//     	viewMenu.add(hideGridItem);
+//
+//     	viewMenu.addMenuListener(new MenuListener()
+//     	{
+//     		public void menuSelected(MenuEvent pEvent)
+//            {
+//	     		if(aTabbedPane.getSelectedComponent() instanceof WelcomeTab)
+//	     		{
+//	     			return;
+//	     		}	
+//     			GraphFrame frame = (GraphFrame) aTabbedPane.getSelectedComponent();
+//                if(frame == null)
+//				{
+//					return;
+//				}
+//                GraphPanel panel = frame.getGraphPanel();
+//                hideGridItem.setSelected(panel.getHideGrid());  
+//            }
+//     		public void menuDeselected(MenuEvent pEvent)
+//            {}
+//            public void menuCanceled(MenuEvent pEvent)
+//            {}
+//     	});
+//	}
+	
+	private void createViewJMenu(MenuFactory pFactory)
+	{	
+		JMenu viewMenu = pFactory.createJMenu("view");
+     	aDiagramRelevantJMenus.add(viewMenu);
      	viewMenu.setEnabled(!noCurrentGraphFrame());
 
-     	viewMenu.add(pFactory.createMenuItem("view.zoom_out", new ActionListener()
+     	viewMenu.add(pFactory.createJMenuItem("view.zoom_out", new ActionListener()
      	{
      		public void actionPerformed(ActionEvent pEvent)
      		{
@@ -318,7 +663,7 @@ public class EditorFrame extends JFrame
      		}
          }));
 
-     	viewMenu.add(pFactory.createMenuItem("view.zoom_in", new ActionListener()
+     	viewMenu.add(pFactory.createJMenuItem("view.zoom_in", new ActionListener()
      	{
             public void actionPerformed(ActionEvent pEvent)
             {
@@ -330,7 +675,7 @@ public class EditorFrame extends JFrame
             }
      	}));
       
-     	final JCheckBoxMenuItem hideGridItem  = (JCheckBoxMenuItem) pFactory.createCheckBoxMenuItem("view.hide_grid", new ActionListener()
+     	final JCheckBoxMenuItem hideGridItem  = (JCheckBoxMenuItem) pFactory.createCheckBoxJMenuItem("view.hide_grid", new ActionListener()
      	{
             public void actionPerformed(ActionEvent pEvent)
             {
@@ -369,17 +714,111 @@ public class EditorFrame extends JFrame
      	});
 	}
 	
+	private void createViewMenu(MenuFactory pFactory)
+	{		
+		Menu viewMenu = pFactory.createMenu("view");
+     	aMenuBar.getMenus().add(viewMenu);
+     	aDiagramRelevantMenus.add(viewMenu);
+     	viewMenu.setDisable(noCurrentGraphFrame());
+
+     	viewMenu.getItems().add(pFactory.createMenuItem("view.zoom_out", pEvent ->
+     	{
+     		if( noCurrentGraphFrame() )
+   			{
+   				return;
+     		}
+     		((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().changeZoom(-1);
+     	}));
+
+     	viewMenu.getItems().add(pFactory.createMenuItem("view.zoom_in", pEvent ->
+     	{
+            if( noCurrentGraphFrame() )
+           	{
+           		return;
+           	}
+           	((GraphFrame) aTabbedPane.getSelectedComponent()).getGraphPanel().changeZoom(1);
+        }));
+      
+     	final CheckMenuItem hideGridItem  = (CheckMenuItem) pFactory.createCheckMenuItem("view.hide_grid", pEvent ->
+     	{
+            if( noCurrentGraphFrame() )
+           	{
+           		return;
+           	}
+            CheckMenuItem menuItem = (CheckMenuItem) pEvent.getSource();
+            boolean selected = menuItem.isSelected();
+            SwingUtilities.invokeLater(()->
+            {
+	           	GraphFrame frame = (GraphFrame)aTabbedPane.getSelectedComponent();
+	           	GraphPanel panel = frame.getGraphPanel();	               
+	           	panel.setHideGrid(selected);
+            });
+        });
+     	viewMenu.getItems().add(hideGridItem);
+
+     	//NEED TO FIX
+//     	viewMenu.addMenuListener(new MenuListener()
+//     	{
+//     		public void menuSelected(MenuEvent pEvent)
+//            {
+//	     		if(aTabbedPane.getSelectedComponent() instanceof WelcomeTab)
+//	     		{
+//	     			return;
+//	     		}	
+//     			GraphFrame frame = (GraphFrame) aTabbedPane.getSelectedComponent();
+//                if(frame == null)
+//				{
+//					return;
+//				}
+//                GraphPanel panel = frame.getGraphPanel();
+//                hideGridItem.setSelected(panel.getHideGrid());  
+//            }
+//     	});
+	}
 	
+	
+//	private void createHelpMenu(MenuFactory pFactory)
+//	{
+//		JMenuBar menuBar = getJMenuBar();
+//		JMenu helpMenu = pFactory.createJMenu("help");
+//		menuBar.add(helpMenu);
+//		
+//		helpMenu.add(pFactory.createJMenuItem("help.about", this, "showAboutDialog"));
+//		helpMenu.add(pFactory.createJMenuItem("help.license", new ActionListener()
+//		{
+//			public void actionPerformed(ActionEvent pEvent)
+//			{
+//				try
+//				{
+//					BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("license.txt")));
+//					JTextArea text = new JTextArea(HELP_MENU_TEXT_WIDTH, HELP_MENU_TEXT_HEIGHT);
+//					String line;
+//					while ((line = reader.readLine()) != null)
+//					{
+//						text.append(line);
+//						text.append("\n");
+//					}   
+//					text.setCaretPosition(0);
+//					text.setEditable(false);
+//					JOptionPane.showInternalMessageDialog(aTabbedPane, new JScrollPane(text), 
+//							aEditorResources.getString("dialog.license.title"), JOptionPane.PLAIN_MESSAGE);
+//				}
+//				catch(IOException exception) 
+//				{}
+//			}
+//		}));
+//	}
+	
+	//Update to JavaFX Popup??
 	private void createHelpMenu(MenuFactory pFactory)
 	{
-		JMenuBar menuBar = getJMenuBar();
-		JMenu helpMenu = pFactory.createMenu("help");
-		menuBar.add(helpMenu);
+		Menu helpMenu = pFactory.createMenu("help");
+		aMenuBar.getMenus().add(helpMenu);
 		
-		helpMenu.add(pFactory.createMenuItem("help.about", this, "showAboutDialog"));
-		helpMenu.add(pFactory.createMenuItem("help.license", new ActionListener()
+		helpMenu.getItems().add(pFactory.createMenuItem("help.about", pEvent -> this.showAboutDialog()));
+		helpMenu.getItems().add(pFactory.createMenuItem("help.license", pEvent -> 
 		{
-			public void actionPerformed(ActionEvent pEvent)
+			SwingUtilities.invokeLater(() ->
 			{
 				try
 				{
@@ -398,7 +837,7 @@ public class EditorFrame extends JFrame
 				}
 				catch(IOException exception) 
 				{}
-			}
+			});
 		}));
 	}
 	
@@ -409,7 +848,7 @@ public class EditorFrame extends JFrame
      */
 	public void addGraphType(String pResourceName, final Class<?> pGraphClass)
 	{
-		aNewMenu.add(aAppFactory.createMenuItem(pResourceName, new ActionListener()
+		aNewJMenu.add(aAppFactory.createJMenuItem(pResourceName, new ActionListener()
 		{
 			public void actionPerformed(ActionEvent pEvent)
             {
@@ -424,7 +863,27 @@ public class EditorFrame extends JFrame
                }
             }
          }));
+		Platform.runLater(()->
+		{
+			aNewMenu.getItems().add(aAppFactory.createMenuItem(pResourceName, pEvent -> 
+			{
+				SwingUtilities.invokeLater(()->
+				{
+					try
+					{
+						GraphFrame frame = new GraphFrame((Graph) pGraphClass.newInstance(), aTabbedPane);
+						addTab(frame);
+					}
+					catch (Exception exception)
+					{
+						exception.printStackTrace();
+					}
+				});
+            }));
+			
+		});
 	}
+	
 	
 	/**
 	 * Sets the TaskBar icon for the JetUML application.
@@ -478,7 +937,7 @@ public class EditorFrame extends JFrame
 					{
 						frame.toFront();
 						frame.setSelected(true); 
-						addRecentFile(new File(pName).getPath());
+						addRecentFileJ(new File(pName).getPath());
 					}
 					catch(PropertyVetoException exception)
 					{}
@@ -491,7 +950,7 @@ public class EditorFrame extends JFrame
 			Graph graph = PersistenceService.read(new File(pName));
 			GraphFrame frame = new GraphFrame(graph, aTabbedPane);
 			frame.setFile(new File(pName).getAbsoluteFile());    
-			addRecentFile(new File(pName).getPath());
+			addRecentFileJ(new File(pName).getPath());
 			addTab(frame);
 		}
 		catch(IOException | DeserializationException exception )
@@ -589,7 +1048,7 @@ public class EditorFrame extends JFrame
    	 */
    	public void addWelcomeTab()
    	{
-   		aWelcomeTab = new WelcomeTab(aNewMenu, aRecentFilesMenu);
+   		aWelcomeTab = new WelcomeTab(aNewJMenu, aRecentFilesJMenu);
      	aTabbedPane.add("Welcome", aWelcomeTab);
      	aTabs.add(aWelcomeTab);
    	}
@@ -623,7 +1082,7 @@ public class EditorFrame extends JFrame
         aTabs.remove(pInternalFrame);
         if(aTabs.size() == 0)
         {
-        	aWelcomeTab = new WelcomeTab(aNewMenu, aRecentFilesMenu);
+        	aWelcomeTab = new WelcomeTab(aNewJMenu, aRecentFilesJMenu);
         	aTabbedPane.add("Welcome", aWelcomeTab);
         	aTabs.add(aWelcomeTab);
         }
@@ -633,10 +1092,10 @@ public class EditorFrame extends JFrame
    	 * Adds a file name to the "recent files" list and rebuilds the "recent files" menu. 
    	 * @param pNewFile the file name to add
    	 */
-   	private void addRecentFile(String pNewFile)
+   	private void addRecentFileJ(String pNewFile)
    	{
    		aRecentFiles.add(pNewFile);
-   		buildRecentFilesMenu();
+   		buildRecentFilesJMenu();
    	}
    
    	/*
@@ -644,11 +1103,11 @@ public class EditorFrame extends JFrame
    	 * recent files is less than 8. Otherwise, additional logic will need
    	 * to be added to 0-index the mnemonics for files 1-9
    	 */
-   	private void buildRecentFilesMenu()
+   	private void buildRecentFilesJMenu()
    	{ 
    		assert aRecentFiles.size() <= MAX_RECENT_FILES;
-   		aRecentFilesMenu.removeAll();
-   		aRecentFilesMenu.setEnabled(aRecentFiles.size() > 0);
+   		aRecentFilesJMenu.removeAll();
+   		aRecentFilesJMenu.setEnabled(aRecentFiles.size() > 0);
    		int i = 1;
    		for( File file : aRecentFiles )
    		{
@@ -656,7 +1115,7 @@ public class EditorFrame extends JFrame
    			final String fileName = file.getAbsolutePath();
    			JMenuItem item = new JMenuItem(name);
    			item.setMnemonic('0'+i);
-   			aRecentFilesMenu.add(item);
+   			aRecentFilesJMenu.add(item);
             item.addActionListener(new ActionListener()
             {
            	 	public void actionPerformed(ActionEvent pEvent)
@@ -665,7 +1124,34 @@ public class EditorFrame extends JFrame
            	 	}
             });
             i++;
-   		}     
+   		}
+   }
+   	
+   	/*
+   	 * Rebuilds the "recent files" menu. Only works if the number of
+   	 * recent files is less than 8. Otherwise, additional logic will need
+   	 * to be added to 0-index the mnemonics for files 1-9
+   	 */
+   	private void buildRecentFilesMenu()
+   	{ 
+   		assert aRecentFiles.size() <= MAX_RECENT_FILES;
+   		aRecentFilesMenu.getItems().clear();
+   		aRecentFilesMenu.setDisable(!(aRecentFiles.size() > 0));
+   		int i = 1;
+   		for( File file : aRecentFiles )
+   		{
+   			String name = i + " " + file.getName();
+   			final String fileName = file.getAbsolutePath();
+   			MenuItem item = new MenuItem(name);
+   			// set mnemonic
+//   			item.setMnemonic('0'+i);
+   			aRecentFilesMenu.getItems().add(item);
+            item.setOnAction(pEvent ->
+            {
+           	 	SwingUtilities.invokeLater(() -> open(fileName));
+            });
+            i++;
+   		}
    }
 
    	/**
@@ -930,7 +1416,7 @@ public class EditorFrame extends JFrame
    			if(result != null)
    			{
    				PersistenceService.save(graph, result);
-   				addRecentFile(result.getAbsolutePath());
+   				addRecentFileJ(result.getAbsolutePath());
    				frame.setFile(result);
    				aTabbedPane.setTitleAt(aTabbedPane.getSelectedIndex(), frame.getFileName().getName());
    				frame.getGraphPanel().setModified(false);

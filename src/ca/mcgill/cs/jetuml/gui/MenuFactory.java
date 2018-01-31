@@ -22,7 +22,7 @@
 package ca.mcgill.cs.jetuml.gui;
 
 import java.awt.event.ActionListener;
-import java.beans.EventHandler;
+//import java.beans.EventHandler;
 import java.util.ResourceBundle;
 
 import javax.swing.ImageIcon;
@@ -30,6 +30,16 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.KeyStroke;
+
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCombination;
+
+//Fix Mnemonics that aren't a part of the word
 
 /**
  * A class for creating menus from strings in a 
@@ -57,9 +67,9 @@ class MenuFactory
 	 * @param pMethodName The method to invoke when the menu is selected.
 	 * @return A menu item for the action described.
 	 */
-	public JMenuItem createMenuItem(String pPrefix, Object pTarget, String pMethodName)
+	public JMenuItem createJMenuItem(String pPrefix, Object pTarget, String pMethodName)
 	{
-		return createMenuItem(pPrefix, EventHandler.create(ActionListener.class, pTarget, pMethodName));
+		return createJMenuItem(pPrefix, java.beans.EventHandler.create(ActionListener.class, pTarget, pMethodName));
 	}
 
 	/**
@@ -68,11 +78,23 @@ class MenuFactory
 	 * @param pListener The callback to execute when the menu item is selected.
 	 * @return A menu item for the action described.
 	 */
-	public JMenuItem createMenuItem(String pPrefix, ActionListener pListener)
+	public JMenuItem createJMenuItem(String pPrefix, ActionListener pListener)
 	{
 		String text = aBundle.getString(pPrefix + ".text");
 		JMenuItem menuItem = new JMenuItem(text);
-		return configure(menuItem, pPrefix, pListener);
+		return configureJMenuItem(menuItem, pPrefix, pListener);
+	}
+	
+	/**
+	 * Creates a menu item where pListener is triggered when the menu item is selected.
+	 * @param pPrefix A string such as "file.open" that indicates the menu->submenu path
+	 * @param pHandler The callback to execute when the menu item is selected.
+	 * @return A menu item for the action described.
+	 */
+	public MenuItem createMenuItem(String pPrefix, EventHandler<ActionEvent> pHandler)
+	{
+		MenuItem menuItem = new MenuItem();
+		return configureMenuItem(menuItem, pPrefix, pHandler);
 	}
 
 	/**
@@ -81,17 +103,29 @@ class MenuFactory
 	 * @param pListener The callback to execute when the menu item is selected.
 	 * @return A menu item for the action described.
 	 */
-	public JMenuItem createCheckBoxMenuItem(String pPrefix, ActionListener pListener)
+	public JMenuItem createCheckBoxJMenuItem(String pPrefix, ActionListener pListener)
 	{
 		String text = aBundle.getString(pPrefix + ".text");
 		JMenuItem menuItem = new JCheckBoxMenuItem(text);
-		return configure(menuItem, pPrefix, pListener);
+		return configureJMenuItem(menuItem, pPrefix, pListener);
+	}	
+	
+	/**
+	 * Create a checkbox menu.
+	 * @param pPrefix A string such as "file.open" that indicates the menu->submenu path
+	 * @param pHandler The callback to execute when the menu item is selected.
+	 * @return A menu item for the action described.
+	 */
+	public MenuItem createCheckMenuItem(String pPrefix, EventHandler<ActionEvent> pHandler)
+	{
+		MenuItem menuItem = new CheckMenuItem();
+		return configureMenuItem(menuItem, pPrefix, pHandler);
 	}	
 
 	/*
 	 * Configures the menu with text, mnemonic, accelerator, etc
 	 */
-	private JMenuItem configure(JMenuItem pMenuItem, String pPrefix, ActionListener pListener)
+	private JMenuItem configureJMenuItem(JMenuItem pMenuItem, String pPrefix, ActionListener pListener)
 	{
 		pMenuItem.addActionListener(pListener);
 		if( aBundle.containsKey(pPrefix + ".mnemonic"))
@@ -120,13 +154,52 @@ class MenuFactory
 		}
 		return pMenuItem;
 	}
+
+	/*
+	 * Configures the menu with text, mnemonic, accelerator, etc
+	 */
+	private MenuItem configureMenuItem(MenuItem pMenuItem, String pPrefix, EventHandler<ActionEvent> pHandler)
+	{
+		pMenuItem.setOnAction(pHandler);
+		String text = aBundle.getString(pPrefix + ".text");
+		if( aBundle.containsKey(pPrefix + ".mnemonic"))
+		{
+			int index = text.indexOf(aBundle.getString(pPrefix + ".mnemonic").charAt(0));
+			if (index >= 0) 
+			{
+				text = text.substring(0, index) + "_" + text.substring(index);
+			}
+		}
+		pMenuItem.setText(aBundle.getString(pPrefix + ".text"));
+	
+		//CHECK TO SEE IF FUNCTIONING PROPERLY
+		if( aBundle.containsKey(pPrefix + ".accelerator.mac"))
+		{
+			if(aSystem.indexOf("mac") >= 0)
+			{
+				pMenuItem.setAccelerator(KeyCombination.keyCombination(aBundle.getString(pPrefix + ".accelerator.mac")));	
+			}
+			else
+			{
+				pMenuItem.setAccelerator(KeyCombination.keyCombination(aBundle.getString(pPrefix + ".accelerator.win")));
+			}
+			
+		}
+		//What was tooltip for??
+		if( aBundle.containsKey(pPrefix + ".icon"))
+		{
+			pMenuItem.setGraphic(new ImageView(getClass().getClassLoader().getResource(aBundle.getString(pPrefix + ".icon")).toString()));
+		}
+		return pMenuItem;
+	}
+
 	
 	/**
 	 * Create a menu that corresponds to the resource for key pPrefix.
 	 * @param pPrefix A string such as "file" that indicates the menu->submenu path
 	 * @return A configured menu
 	 */
-	public JMenu createMenu(String pPrefix)
+	public JMenu createJMenu(String pPrefix)
 	{
 		String text = aBundle.getString(pPrefix + ".text");
 		JMenu menu = new JMenu(text);
@@ -152,6 +225,43 @@ class MenuFactory
 		if( aBundle.containsKey(pPrefix + ".icon"))
 		{
 			menu.setIcon(new ImageIcon(getClass().getClassLoader().getResource(aBundle.getString(pPrefix + ".icon"))));
+		}
+
+		return menu;
+	}
+	
+	/**
+	 * Create a menu that corresponds to the resource for key pPrefix.
+	 * @param pPrefix A string such as "file" that indicates the menu->submenu path
+	 * @return A configured menu
+	 */
+	public Menu createMenu(String pPrefix)
+	{
+		String text = aBundle.getString(pPrefix + ".text");
+		Menu menu = new Menu();
+		if( aBundle.containsKey(pPrefix + ".mnemonic"))
+		{
+			int index = text.indexOf(aBundle.getString(pPrefix + ".mnemonic").charAt(0));
+			assert index >= 0;
+			text = text.substring(0, index) + "_" + text.substring(index);
+		}
+		menu.setText(text);
+		
+		//What is tooltip for??
+		if( aBundle.containsKey(pPrefix + ".accelerator.mac"))
+		{
+			if(aSystem.indexOf("mac") >= 0)
+			{
+				menu.setAccelerator(KeyCombination.keyCombination(aBundle.getString(pPrefix + ".accelerator.mac")));	
+			}
+			else
+			{
+				menu.setAccelerator(KeyCombination.keyCombination(aBundle.getString(pPrefix + ".accelerator.win")));
+			}
+		}
+		if( aBundle.containsKey(pPrefix + ".icon"))
+		{
+			menu.setGraphic(new ImageView(getClass().getClassLoader().getResource(aBundle.getString(pPrefix + ".icon")).toString()));
 		}
 
 		return menu;
