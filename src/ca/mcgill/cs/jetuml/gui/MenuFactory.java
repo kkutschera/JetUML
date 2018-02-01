@@ -22,14 +22,11 @@
 package ca.mcgill.cs.jetuml.gui;
 
 import java.awt.event.ActionListener;
-//import java.beans.EventHandler;
 import java.util.ResourceBundle;
 
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
-import javax.swing.KeyStroke;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -39,7 +36,6 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCombination;
 
-//Fix Mnemonics that aren't a part of the word
 
 /**
  * A class for creating menus from strings in a 
@@ -128,30 +124,6 @@ class MenuFactory
 	private JMenuItem configureJMenuItem(JMenuItem pMenuItem, String pPrefix, ActionListener pListener)
 	{
 		pMenuItem.addActionListener(pListener);
-		if( aBundle.containsKey(pPrefix + ".mnemonic"))
-		{
-			pMenuItem.setMnemonic(aBundle.getString(pPrefix + ".mnemonic").charAt(0));
-		}
-		if( aBundle.containsKey(pPrefix + ".accelerator.mac"))
-		{
-			if(aSystem.indexOf("mac") >= 0)
-			{
-				pMenuItem.setAccelerator(KeyStroke.getKeyStroke(aBundle.getString(pPrefix + ".accelerator.mac")));	
-			}
-			else
-			{
-				pMenuItem.setAccelerator(KeyStroke.getKeyStroke(aBundle.getString(pPrefix + ".accelerator.win")));
-			}
-			
-		}
-		if( aBundle.containsKey(pPrefix + ".tooltip"))
-		{
-			pMenuItem.setToolTipText(aBundle.getString(pPrefix + ".tooltip"));         
-		}
-		if( aBundle.containsKey(pPrefix + ".icon"))
-		{
-			pMenuItem.setIcon(new ImageIcon(getClass().getClassLoader().getResource(aBundle.getString(pPrefix + ".icon"))));
-		}
 		return pMenuItem;
 	}
 
@@ -162,17 +134,27 @@ class MenuFactory
 	{
 		pMenuItem.setOnAction(pHandler);
 		String text = aBundle.getString(pPrefix + ".text");
+		
 		if( aBundle.containsKey(pPrefix + ".mnemonic"))
 		{
+			// get index of character to properly insert mnemonic symbol "_"
 			int index = text.indexOf(aBundle.getString(pPrefix + ".mnemonic").charAt(0));
+			if(index < 0) 
+			{
+				index = text.indexOf(aBundle.getString(pPrefix + ".mnemonic").toLowerCase().charAt(0));
+			}
+			
 			if (index >= 0) 
 			{
 				text = text.substring(0, index) + "_" + text.substring(index);
 			}
+			else 
+			{
+				pMenuItem.setAccelerator(KeyCombination.keyCombination("ALT+"+aBundle.getString(pPrefix + ".mnemonic")));
+			}
 		}
-		pMenuItem.setText(aBundle.getString(pPrefix + ".text"));
-	
-		//CHECK TO SEE IF FUNCTIONING PROPERLY
+		pMenuItem.setText(text);
+		
 		if( aBundle.containsKey(pPrefix + ".accelerator.mac"))
 		{
 			if(aSystem.indexOf("mac") >= 0)
@@ -185,7 +167,10 @@ class MenuFactory
 			}
 			
 		}
-		//What was tooltip for??
+		else if( aBundle.containsKey(pPrefix + ".accelerator.all")) 
+		{
+			pMenuItem.setAccelerator(KeyCombination.keyCombination(aBundle.getString(pPrefix + ".accelerator.all")));	
+		}
 		if( aBundle.containsKey(pPrefix + ".icon"))
 		{
 			pMenuItem.setGraphic(new ImageView(getClass().getClassLoader().getResource(aBundle.getString(pPrefix + ".icon")).toString()));
@@ -203,30 +188,6 @@ class MenuFactory
 	{
 		String text = aBundle.getString(pPrefix + ".text");
 		JMenu menu = new JMenu(text);
-		if( aBundle.containsKey(pPrefix + ".mnemonic"))
-		{
-			menu.setMnemonic(aBundle.getString(pPrefix + ".mnemonic").charAt(0));
-		}
-		if( aBundle.containsKey(pPrefix + ".tooltip"))
-      	{
-      		menu.setToolTipText(aBundle.getString(pPrefix + ".tooltip"));         
-      	}
-		if( aBundle.containsKey(pPrefix + ".accelerator.mac"))
-		{
-			if(aSystem.indexOf("mac") >= 0)
-			{
-				menu.setAccelerator(KeyStroke.getKeyStroke(aBundle.getString(pPrefix + ".accelerator.mac")));	
-			}
-			else
-			{
-				menu.setAccelerator(KeyStroke.getKeyStroke(aBundle.getString(pPrefix + ".accelerator.win")));
-			}
-		}
-		if( aBundle.containsKey(pPrefix + ".icon"))
-		{
-			menu.setIcon(new ImageIcon(getClass().getClassLoader().getResource(aBundle.getString(pPrefix + ".icon"))));
-		}
-
 		return menu;
 	}
 	
@@ -246,8 +207,7 @@ class MenuFactory
 			text = text.substring(0, index) + "_" + text.substring(index);
 		}
 		menu.setText(text);
-		
-		//What is tooltip for??
+	
 		if( aBundle.containsKey(pPrefix + ".accelerator.mac"))
 		{
 			if(aSystem.indexOf("mac") >= 0)
@@ -258,6 +218,10 @@ class MenuFactory
 			{
 				menu.setAccelerator(KeyCombination.keyCombination(aBundle.getString(pPrefix + ".accelerator.win")));
 			}
+		}
+		else if( aBundle.containsKey(pPrefix + ".accelerator.all")) 
+		{
+			menu.setAccelerator(KeyCombination.keyCombination(aBundle.getString(pPrefix + ".accelerator.all")));	
 		}
 		if( aBundle.containsKey(pPrefix + ".icon"))
 		{
