@@ -90,10 +90,12 @@ import javafx.embed.swing.JFXPanel;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.CheckMenuItem;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextArea;
 
 /**
  * This desktop frame contains panes that show graphs.
@@ -130,6 +132,7 @@ public class EditorFrame extends JFrame
 	private MenuBar aMenuBar;
 	
 	private WelcomeTab aWelcomeTab;
+	private JFXPanel fxPanel;
 	
 	// Menus or menu items that must be disabled if there is no current diagram.
 	private final List<MenuItem> aDiagramRelevantMenus = new ArrayList<>();
@@ -198,7 +201,7 @@ public class EditorFrame extends JFrame
      	
 		createFileJMenu(factory);
      	
-     	JFXPanel fxPanel = new JFXPanel();
+     	fxPanel = new JFXPanel();
      	this.add(fxPanel);
      	
      	Panel mainPanel = new Panel();
@@ -441,16 +444,13 @@ public class EditorFrame extends JFrame
 //     	});
 	}
 	
-	
-	//Update to JavaFX Popup??
 	private void createHelpMenu(MenuFactory pFactory)
 	{
 		Menu helpMenu = pFactory.createMenu("help");
 		aMenuBar.getMenus().add(helpMenu);
-		
 		helpMenu.getItems().add(pFactory.createMenuItem("help.about", pEvent -> this.showAboutDialog()));
 		helpMenu.getItems().add(pFactory.createMenuItem("help.license", pEvent -> 
-		{
+		{			
 			SwingUtilities.invokeLater(() ->
 			{
 				try
@@ -465,7 +465,7 @@ public class EditorFrame extends JFrame
 					}   
 					text.setCaretPosition(0);
 					text.setEditable(false);
-					JOptionPane.showInternalMessageDialog(aTabbedPane, new JScrollPane(text), 
+					JOptionPane.showMessageDialog(fxPanel, new JScrollPane(text), 
 							aEditorResources.getString("dialog.license.title"), JOptionPane.PLAIN_MESSAGE);
 				}
 				catch(IOException exception) 
@@ -701,7 +701,7 @@ public class EditorFrame extends JFrame
    	
    	/**
    	 * @param pInternalFrame The JInternalFrame to remove.
-   	 * Calling this metod will remove a given JInternalFrame.
+   	 * Calling this method will remove a given JInternalFrame.
    	 */
    	public void removeTab(final JInternalFrame pInternalFrame)
     {
@@ -778,7 +778,7 @@ public class EditorFrame extends JFrame
             i++;
    		}
    }
-
+   	
    	/**
      * Asks the user to open a graph file.
    	 */
@@ -892,7 +892,7 @@ public class EditorFrame extends JFrame
 		        }
 			}
 		}, null);
-   		JOptionPane.showInternalMessageDialog(aTabbedPane, aEditorResources.getString("dialog.to_clipboard.message"), 
+   		JOptionPane.showMessageDialog(aTabbedPane, aEditorResources.getString("dialog.to_clipboard.message"), 
    				aEditorResources.getString("dialog.to_clipboard.title"), JOptionPane.INFORMATION_MESSAGE);
    	}
    	
@@ -981,7 +981,7 @@ public class EditorFrame extends JFrame
    		}        
    		catch(Exception exception)
    		{
-   			JOptionPane.showInternalMessageDialog(aTabbedPane, exception);
+   			JOptionPane.showMessageDialog(aTabbedPane, exception);
    		}        
    	}
    
@@ -1049,7 +1049,7 @@ public class EditorFrame extends JFrame
    		}
    		catch(IOException exception)
    		{
-   			JOptionPane.showInternalMessageDialog(aTabbedPane, exception);
+   			JOptionPane.showMessageDialog(aTabbedPane, exception);
    		}
    	}
 
@@ -1097,7 +1097,7 @@ public class EditorFrame extends JFrame
 		String format  = fileName.substring(fileName.lastIndexOf(".") + 1);
 		if(!ImageIO.getImageWritersByFormatName(format).hasNext())
 		{
-			JOptionPane.showInternalMessageDialog(aTabbedPane, aEditorResources.getString("error.unsupported_image"),
+			JOptionPane.showMessageDialog(aTabbedPane, aEditorResources.getString("error.unsupported_image"),
 					aEditorResources.getString("error.unsupported_image.title"), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
@@ -1110,7 +1110,7 @@ public class EditorFrame extends JFrame
    		}
    		catch(IOException exception)
    		{
-   			JOptionPane.showInternalMessageDialog(aTabbedPane, exception);
+   			JOptionPane.showMessageDialog(aTabbedPane, exception);
    		}      
    	}
    	
@@ -1248,7 +1248,7 @@ public class EditorFrame extends JFrame
    	public void showAboutDialog()
    	{
    		MessageFormat formatter = new MessageFormat(aEditorResources.getString("dialog.about.version"));
-   		JOptionPane.showInternalMessageDialog(aTabbedPane, formatter.format(new Object[] { 
+   		JOptionPane.showMessageDialog(aTabbedPane, formatter.format(new Object[] { 
                aAppResources.getString("app.name"),
                aVersionResources.getString("version.number"),
                aVersionResources.getString("version.date"),
@@ -1282,7 +1282,7 @@ public class EditorFrame extends JFrame
    		if(modcount > 0)
    		{
    			// ask user if it is ok to close
-   			int result = JOptionPane.showInternalConfirmDialog(aTabbedPane, MessageFormat.format(aEditorResources.getString("dialog.exit.ok"),
+   			int result = JOptionPane.showConfirmDialog(aTabbedPane, MessageFormat.format(aEditorResources.getString("dialog.exit.ok"),
                      new Object[] { new Integer(modcount) }), null, JOptionPane.YES_NO_OPTION);
          
    			// if the user doesn't agree, veto the close
