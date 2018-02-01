@@ -287,8 +287,7 @@ public class EditorFrame extends JFrame
 
      	aRecentFilesMenu = pFactory.createMenu("file.recent");
      	
-     	//UPDATE LATER
-     	//buildRecentFilesMenu();
+     	buildRecentFilesMenu();
      	fileMenu.getItems().add(aRecentFilesMenu);
      	
      	MenuItem closeFileItem = pFactory.createMenuItem("file.close", pEvent -> this.close());
@@ -732,11 +731,6 @@ public class EditorFrame extends JFrame
    		buildRecentFilesJMenu();
    	}
    
-   	/*
-   	 * Rebuilds the "recent files" menu. Only works if the number of
-   	 * recent files is less than 8. Otherwise, additional logic will need
-   	 * to be added to 0-index the mnemonics for files 1-9
-   	 */
    	private void buildRecentFilesJMenu()
    	{ 
    		assert aRecentFiles.size() <= MAX_RECENT_FILES;
@@ -748,7 +742,6 @@ public class EditorFrame extends JFrame
    			String name = i + " " + file.getName();
    			final String fileName = file.getAbsolutePath();
    			JMenuItem item = new JMenuItem(name);
-   			item.setMnemonic('0'+i);
    			aRecentFilesJMenu.add(item);
             item.addActionListener(new ActionListener()
             {
@@ -763,8 +756,8 @@ public class EditorFrame extends JFrame
    	
    	/*
    	 * Rebuilds the "recent files" menu. Only works if the number of
-   	 * recent files is less than 8. Otherwise, additional logic will need
-   	 * to be added to 0-index the mnemonics for files 1-9
+   	 * recent files is less than 10. Otherwise, additional logic will need
+   	 * to be added to 0-index the mnemonics for files 1-9.
    	 */
    	private void buildRecentFilesMenu()
    	{ 
@@ -774,11 +767,9 @@ public class EditorFrame extends JFrame
    		int i = 1;
    		for( File file : aRecentFiles )
    		{
-   			String name = i + " " + file.getName();
+   			String name = "_" + i + " " + file.getName();
    			final String fileName = file.getAbsolutePath();
    			MenuItem item = new MenuItem(name);
-   			// set mnemonic
-//   			item.setMnemonic('0'+i);
    			aRecentFilesMenu.getItems().add(item);
             item.setOnAction(pEvent ->
             {
