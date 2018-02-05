@@ -102,6 +102,7 @@ import javafx.scene.control.TextArea;
  * 
  * @author Cay S. Horstmann - Original code
  * @author Martin P. Robillard - Refactorings, file handling, menu management.
+ * @author Kaylee I. Kutschera - Migration to JavaFX
  */
 @SuppressWarnings("serial")
 public class EditorFrame extends JFrame
@@ -132,7 +133,7 @@ public class EditorFrame extends JFrame
 	private MenuBar aMenuBar;
 	
 	private WelcomeTab aWelcomeTab;
-	private JFXPanel fxPanel;
+	private JFXPanel aJFXPanel;
 	
 	// Menus or menu items that must be disabled if there is no current diagram.
 	private final List<MenuItem> aDiagramRelevantMenus = new ArrayList<>();
@@ -195,21 +196,17 @@ public class EditorFrame extends JFrame
 				});
 			}
 		});
-//		setContentPane(aTabbedPane);
-
-//     	setJMenuBar(new JMenuBar());
      	
 		createFileJMenu(factory);
      	
-     	fxPanel = new JFXPanel();
-     	this.add(fxPanel);
+     	aJFXPanel = new JFXPanel();
+     	this.add(aJFXPanel);
      	
      	Panel mainPanel = new Panel();
      	mainPanel.setLayout(new BorderLayout());
-     	mainPanel.add(fxPanel, BorderLayout.NORTH);
+     	mainPanel.add(aJFXPanel, BorderLayout.NORTH);
      	mainPanel.add(aTabbedPane, BorderLayout.CENTER);
         
-     	
      	Platform.runLater(() ->
      	{
      		aMenuBar = new MenuBar();
@@ -218,20 +215,17 @@ public class EditorFrame extends JFrame
      		createEditMenu(factory);
      		createViewMenu(factory);
      		createHelpMenu(factory);
-     		// add to menu bar
             
      		Group group = new Group();
      		group.getChildren().add(aMenuBar);
      		Scene scene = new Scene(group);
-     		fxPanel.setScene(scene);
+     		aJFXPanel.setScene(scene);
      	});
      	
      	setContentPane(mainPanel);
-     	
 	}
 	
-	// create jmenu for welcome tab
-	// remove unnecessary once new menu bar up and running
+	// creates JMenu for welcome tab
 	private void createFileJMenu(MenuFactory pFactory)
 	{
      	JMenu fileMenu = pFactory.createJMenu("file");
@@ -424,24 +418,20 @@ public class EditorFrame extends JFrame
         });
      	viewMenu.getItems().add(hideGridItem);
 
-     	//NEED TO FIX
-//     	viewMenu.addMenuListener(new MenuListener()
-//     	{
-//     		public void menuSelected(MenuEvent pEvent)
-//            {
-//	     		if(aTabbedPane.getSelectedComponent() instanceof WelcomeTab)
-//	     		{
-//	     			return;
-//	     		}	
-//     			GraphFrame frame = (GraphFrame) aTabbedPane.getSelectedComponent();
-//                if(frame == null)
-//				{
-//					return;
-//				}
-//                GraphPanel panel = frame.getGraphPanel();
-//                hideGridItem.setSelected(panel.getHideGrid());  
-//            }
-//     	});
+     	viewMenu.setOnShowing(pEvent ->
+     	{
+     		if(aTabbedPane.getSelectedComponent() instanceof WelcomeTab)
+     		{
+     			return;
+     		}	
+ 			GraphFrame frame = (GraphFrame) aTabbedPane.getSelectedComponent();
+            if(frame == null)
+			{
+				return;
+			}
+            GraphPanel panel = frame.getGraphPanel();
+            hideGridItem.setSelected(panel.getHideGrid());  
+     	});
 	}
 	
 	private void createHelpMenu(MenuFactory pFactory)
@@ -465,7 +455,7 @@ public class EditorFrame extends JFrame
 					}   
 					text.setCaretPosition(0);
 					text.setEditable(false);
-					JOptionPane.showMessageDialog(fxPanel, new JScrollPane(text), 
+					JOptionPane.showMessageDialog(aJFXPanel, new JScrollPane(text), 
 							aEditorResources.getString("dialog.license.title"), JOptionPane.PLAIN_MESSAGE);
 				}
 				catch(IOException exception) 
@@ -513,7 +503,6 @@ public class EditorFrame extends JFrame
 					}
 				});
             }));
-			
 		});
 	}
 	
@@ -1021,7 +1010,6 @@ public class EditorFrame extends JFrame
    				{
    					f = new File(f.getPath() + graph.getFileExtension() + aAppResources.getString("files.extension"));
    				}
-
    				if(!f.exists()) 
    				{
    					result = f;
@@ -1036,8 +1024,7 @@ public class EditorFrame extends JFrame
    	        			result = f;
    	        		}
    				}
-   			}
-   			
+   			}	
    			if(result != null)
    			{
    				PersistenceService.save(graph, result);

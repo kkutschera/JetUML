@@ -40,6 +40,8 @@ import javafx.scene.input.KeyCombination;
 /**
  * A class for creating menus from strings in a 
  * resource bundle.
+ * 
+ * @author Kaylee I. Kutschera - Migration to JavaFX
  */
 class MenuFactory
 {
@@ -92,19 +94,6 @@ class MenuFactory
 		MenuItem menuItem = new MenuItem();
 		return configureMenuItem(menuItem, pPrefix, pHandler);
 	}
-
-	/**
-	 * Create a checkbox menu.
-	 * @param pPrefix A string such as "file.open" that indicates the menu->submenu path
-	 * @param pListener The callback to execute when the menu item is selected.
-	 * @return A menu item for the action described.
-	 */
-	public JMenuItem createCheckBoxJMenuItem(String pPrefix, ActionListener pListener)
-	{
-		String text = aBundle.getString(pPrefix + ".text");
-		JMenuItem menuItem = new JCheckBoxMenuItem(text);
-		return configureJMenuItem(menuItem, pPrefix, pListener);
-	}	
 	
 	/**
 	 * Create a checkbox menu.
