@@ -24,7 +24,6 @@ package ca.mcgill.cs.jetuml.gui;
 import java.awt.event.ActionListener;
 import java.util.ResourceBundle;
 
-import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
