@@ -28,6 +28,7 @@ import java.awt.image.BufferedImage;
 import org.junit.Before;
 import org.junit.Test;
 
+import ca.mcgill.cs.jetuml.JavaFXTest;
 import ca.mcgill.cs.jetuml.diagrams.UseCaseDiagramGraph;
 import ca.mcgill.cs.jetuml.geom.Point;
 import ca.mcgill.cs.jetuml.geom.Rectangle;
@@ -51,7 +52,7 @@ import ca.mcgill.cs.jetuml.gui.ToolBar;
  *
  */
 
-public class TestUsageScenariosUseCaseDiagram 
+public class TestUsageScenariosUseCaseDiagram extends JavaFXTest
 {
 	private UseCaseDiagramGraph aDiagram;
 	private Graphics2D aGraphics;

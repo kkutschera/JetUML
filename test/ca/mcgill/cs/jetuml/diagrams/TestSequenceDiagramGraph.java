@@ -27,6 +27,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
+import ca.mcgill.cs.jetuml.JavaFXTest;
 import ca.mcgill.cs.jetuml.diagrams.SequenceDiagramGraph;
 import ca.mcgill.cs.jetuml.geom.Point;
 import ca.mcgill.cs.jetuml.graph.Edge;
@@ -38,7 +39,7 @@ import ca.mcgill.cs.jetuml.graph.nodes.ImplicitParameterNode;
  * @author Martin P. Robillard
  * @author Gabriel Cormier-Affleck (testDeepFindNodeTwoChildren)
  */
-public class TestSequenceDiagramGraph
+public class TestSequenceDiagramGraph extends JavaFXTest
 {
 	 private SequenceDiagramGraph aGraph;
 	 

@@ -29,6 +29,7 @@ import java.awt.image.BufferedImage;
 import org.junit.Before;
 import org.junit.Test;
 
+import ca.mcgill.cs.jetuml.JavaFXTest;
 import ca.mcgill.cs.jetuml.diagrams.StateDiagramGraph;
 import ca.mcgill.cs.jetuml.geom.Point;
 import ca.mcgill.cs.jetuml.geom.Rectangle;
@@ -41,7 +42,6 @@ import ca.mcgill.cs.jetuml.graph.nodes.NoteNode;
 import ca.mcgill.cs.jetuml.graph.nodes.StateNode;
 import ca.mcgill.cs.jetuml.gui.GraphPanel;
 import ca.mcgill.cs.jetuml.gui.ToolBar;
-import javafx.embed.swing.JFXPanel;
 
 /**
  * Tests various interactions with State Diagram normally triggered from the 
@@ -50,7 +50,7 @@ import javafx.embed.swing.JFXPanel;
  * @author Jiajun Chen
  * @author Martin P. Robillard - Modifications to Clipboard API
  */
-public class TestUsageScenariosStateDiagram 
+public class TestUsageScenariosStateDiagram extends JavaFXTest
 {
 	private StateDiagramGraph aDiagram;
 	private Graphics2D aGraphics;
@@ -73,7 +73,6 @@ public class TestUsageScenariosStateDiagram
 	{
 		aDiagram = new StateDiagramGraph();
 		aGraphics = new BufferedImage(256, 256, BufferedImage.TYPE_INT_RGB).createGraphics();
-		new JFXPanel();	// to prepare JavaFX toolkit and environment
 		aPanel = new GraphPanel(aDiagram, new ToolBar(aDiagram), null);
 		aStateNode1 = new StateNode();
 		aStateNode1.moveTo(new Point(50, 20));

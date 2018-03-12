@@ -28,13 +28,11 @@ import java.awt.image.BufferedImage;
 import org.junit.Before;
 import org.junit.Test;
 
+import ca.mcgill.cs.jetuml.JavaFXTest;
 import ca.mcgill.cs.jetuml.application.SelectionList;
 import ca.mcgill.cs.jetuml.diagrams.SequenceDiagramGraph;
 import ca.mcgill.cs.jetuml.geom.Point;
 import ca.mcgill.cs.jetuml.geom.Rectangle;
-import ca.mcgill.cs.jetuml.graph.Edge;
-import ca.mcgill.cs.jetuml.graph.GraphElement;
-import ca.mcgill.cs.jetuml.graph.Node;
 import ca.mcgill.cs.jetuml.graph.edges.CallEdge;
 import ca.mcgill.cs.jetuml.graph.edges.NoteEdge;
 import ca.mcgill.cs.jetuml.graph.edges.ReturnEdge;
@@ -52,7 +50,7 @@ import ca.mcgill.cs.jetuml.gui.ToolBar;
  * @author Martin P. Robillard - Modifications to Clipboard API
  */
 
-public class TestUsageScenariosSequenceDiagram 
+public class TestUsageScenariosSequenceDiagram extends JavaFXTest
 {
 	private SequenceDiagramGraph aDiagram;
 	private Graphics2D aGraphics;

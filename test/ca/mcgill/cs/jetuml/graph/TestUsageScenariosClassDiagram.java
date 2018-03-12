@@ -30,13 +30,11 @@ import java.awt.image.BufferedImage;
 import org.junit.Before;
 import org.junit.Test;
 
+import ca.mcgill.cs.jetuml.JavaFXTest;
 import ca.mcgill.cs.jetuml.application.SelectionList;
 import ca.mcgill.cs.jetuml.diagrams.ClassDiagramGraph;
 import ca.mcgill.cs.jetuml.geom.Point;
 import ca.mcgill.cs.jetuml.geom.Rectangle;
-import ca.mcgill.cs.jetuml.graph.Edge;
-import ca.mcgill.cs.jetuml.graph.GraphElement;
-import ca.mcgill.cs.jetuml.graph.Node;
 import ca.mcgill.cs.jetuml.graph.edges.AggregationEdge;
 import ca.mcgill.cs.jetuml.graph.edges.AssociationEdge;
 import ca.mcgill.cs.jetuml.graph.edges.DependencyEdge;
@@ -59,7 +57,7 @@ import ca.mcgill.cs.jetuml.gui.ToolBar;
  *
  */
 
-public class TestUsageScenariosClassDiagram 
+public class TestUsageScenariosClassDiagram extends JavaFXTest
 {
 	private ClassDiagramGraph aDiagram;
 	private Graphics2D aGraphics;
